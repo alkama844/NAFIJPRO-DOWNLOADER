@@ -1,0 +1,18 @@
+{
+  "name": "nafijpro-downloader",
+  "version": "1.0.0",
+  "private": true,
+  "description": "DownAria - Social Media Downloader (Frontend + Backend)",
+  "scripts": {
+    "dev": "concurrently --names \"BACKEND,FRONTEND\" --prefix-colors \"blue,green\" \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:frontend": "cd fauntend && npm run dev",
+    "dev:backend": "cd backend && go run ./cmd/server",
+    "build:frontend": "cd fauntend && npm run build",
+    "install:frontend": "cd fauntend && npm install",
+    "start:frontend": "cd fauntend && npm start",
+    "lint:frontend": "cd fauntend && npm run lint"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

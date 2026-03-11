@@ -1,0 +1,70 @@
+{
+  "name": "DownAria - Social Media Downloader",
+  "short_name": "DownAria",
+  "description": "Download videos from Facebook, Instagram, TikTok, Twitter, YouTube and more. Free, fast, no watermark.",
+  "start_url": "/",
+  "id": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "background_color": "#0d1117",
+  "theme_color": "#58a6ff",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["social", "utilities", "productivity"],
+  "prefer_related_applications": false,
+  "lang": "en",
+  "dir": "ltr",
+  "shortcuts": [
+    {
+      "name": "Download Video",
+      "short_name": "Download",
+      "description": "Start downloading videos",
+      "url": "/",
+      "icons": [{ "src": "/icon-512.png", "sizes": "512x512" }]
+    },
+    {
+      "name": "History",
+      "short_name": "History",
+      "description": "View download history",
+      "url": "/history",
+      "icons": [{ "src": "/icon-512.png", "sizes": "512x512" }]
+    },
+    {
+      "name": "Settings",
+      "short_name": "Settings",
+      "description": "Configure app settings",
+      "url": "/settings",
+      "icons": [{ "src": "/icon-512.png", "sizes": "512x512" }]
+    }
+  ],
+  "share_target": {
+    "action": "/share",
+    "method": "GET",
+    "enctype": "application/x-www-form-urlencoded",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
+  "screenshots": [],
+  "related_applications": [],
+  "handle_links": "preferred",
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  }
+}

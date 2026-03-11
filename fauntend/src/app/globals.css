@@ -1,0 +1,616 @@
+@import "tailwindcss";
+
+
+
+/* Custom CSS Variables */
+:root {
+  /* Light theme as default */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f5f5f5;
+  --bg-card: #ffffff;
+  --bg-card-rgb: 255, 255, 255;
+  --bg-card-hover: #f0f0f0;
+
+  --accent-primary: #6366f1;
+  --accent-secondary: #8b5cf6;
+  --accent-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+
+  --text-primary: #1a1a1a;
+  --text-secondary: #525252;
+  --text-muted: #737373;
+
+  --success: #16a34a;
+  --error: #dc2626;
+  --warning: #d97706;
+
+  --border-color: #e5e5e5;
+  --glass-bg: rgba(0, 0, 0, 0.02);
+  --glass-border: rgba(0, 0, 0, 0.08);
+
+  /* Platform Colors */
+  --youtube: #ff0000;
+  --facebook: #1877f2;
+  --instagram: #e4405f;
+  --twitter: #000000;
+
+  /* Override system color scheme */
+  color-scheme: light;
+}
+
+/* Light Theme - pure white */
+.theme-light {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f5f5f5;
+  --bg-card: #ffffff;
+  --bg-card-rgb: 255, 255, 255;
+  --bg-card-hover: #f0f0f0;
+
+  --accent-primary: #6366f1;
+  --accent-secondary: #8b5cf6;
+  --accent-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+
+  --text-primary: #1a1a1a;
+  --text-secondary: #525252;
+  --text-muted: #737373;
+
+  --success: #16a34a;
+  --error: #dc2626;
+  --warning: #d97706;
+
+  --border-color: #e5e5e5;
+  --glass-bg: rgba(0, 0, 0, 0.02);
+  --glass-border: rgba(0, 0, 0, 0.08);
+}
+
+/* Solarized Theme - cream/warm white with better contrast */
+.theme-solarized {
+  --bg-primary: #fdf6e3;
+  --bg-secondary: #eee8d5;
+  --bg-card: #ffffff;
+  --bg-card-rgb: 255, 255, 255;
+  --bg-card-hover: #f5f0e1;
+
+  --accent-primary: #5046e5;
+  --accent-secondary: #7c3aed;
+  --accent-gradient: linear-gradient(135deg, #5046e5 0%, #7c3aed 100%);
+
+  --text-primary: #1c1917;
+  --text-secondary: #3f3f46;
+  --text-muted: #52525b;
+
+  --success: #16a34a;
+  --error: #dc2626;
+  --warning: #b45309;
+  /* Darker amber for solarized - better contrast */
+
+  --border-color: #d6d3d1;
+  --glass-bg: rgba(28, 25, 23, 0.03);
+  --glass-border: rgba(28, 25, 23, 0.12);
+}
+
+/* Solarized-specific color overrides for better contrast */
+.theme-solarized .text-yellow-400,
+.theme-solarized .text-amber-400,
+.theme-solarized .text-yellow-500,
+.theme-solarized .text-amber-500,
+.theme-solarized .text-yellow-600,
+.theme-solarized .text-amber-600,
+.theme-solarized .text-yellow-300,
+.theme-solarized .text-amber-300 {
+  color: #856404 !important;
+  /* Darker yellowish brown - visible on cream */
+}
+
+/* Status color overrides for Solarized (Darker than defaults) */
+.theme-solarized .text-green-400,
+.theme-solarized .text-green-500 {
+  color: #2d6a4f !important;
+}
+
+.theme-solarized .text-blue-400,
+.theme-solarized .text-blue-500 {
+  color: #1d4ed8 !important;
+}
+
+.theme-solarized .text-red-400,
+.theme-solarized .text-red-500 {
+  color: #991b1b !important;
+}
+
+.theme-solarized .text-purple-400,
+.theme-solarized .text-purple-500 {
+  color: #6b21a8 !important;
+}
+
+.theme-solarized .text-orange-400,
+.theme-solarized .text-orange-500 {
+  color: #9a3412 !important;
+}
+
+.theme-solarized .text-cyan-400,
+.theme-solarized .text-cyan-500 {
+  color: #0e7490 !important;
+}
+
+/* Status background overrides for Solarized */
+.theme-solarized .bg-yellow-500\/20,
+.theme-solarized .bg-amber-500\/20 {
+  background-color: rgba(133, 100, 4, 0.2) !important;
+}
+
+.theme-solarized .bg-green-500\/20 {
+  background-color: rgba(45, 106, 79, 0.15) !important;
+}
+
+.theme-solarized .bg-blue-500\/20 {
+  background-color: rgba(29, 78, 216, 0.1) !important;
+}
+
+.theme-solarized .bg-red-500\/20 {
+  background-color: rgba(153, 27, 27, 0.1) !important;
+}
+
+.theme-solarized .bg-amber-500\/10 {
+  background-color: rgba(133, 100, 4, 0.15) !important;
+}
+
+/* Fixed Solarized Backgrounds for Badges */
+.theme-solarized .bg-yellow-400,
+.theme-solarized .bg-amber-400,
+.theme-solarized .bg-yellow-500,
+.theme-solarized .bg-amber-500 {
+  background-color: #b58900 !important;
+  /* Solarized yellow base */
+  color: #fdf6e3 !important;
+}
+
+.theme-solarized .border-yellow-500\/20,
+.theme-solarized .border-yellow-500\/30,
+.theme-solarized .border-amber-500\/20,
+.theme-solarized .border-amber-500\/30 {
+  border-color: rgba(133, 100, 4, 0.3) !important;
+}
+
+/* Dark Theme - Solid teal/cyan style */
+.theme-dark {
+  --bg-primary: #0d1117;
+  --bg-secondary: #161b22;
+  --bg-card: #1c2128;
+  --bg-card-rgb: 28, 33, 40;
+  --bg-card-hover: #252c35;
+
+  --accent-primary: #58a6ff;
+  --accent-secondary: #79c0ff;
+  --accent-gradient: linear-gradient(135deg, #58a6ff 0%, #79c0ff 100%);
+
+  --text-primary: #e6edf3;
+  --text-secondary: #8b949e;
+  --text-muted: #6e7681;
+
+  --success: #3fb950;
+  --error: #f85149;
+  --warning: #d29922;
+
+  --border-color: #30363d;
+  --glass-bg: rgba(255, 255, 255, 0.04);
+  --glass-border: rgba(255, 255, 255, 0.08);
+}
+
+@theme inline {
+  --color-background: var(--bg-primary);
+  --color-foreground: var(--text-primary);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+/* Base styles */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-mono), 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+  min-height: 100vh;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* Glassmorphism utilities */
+.glass {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+}
+
+/* Enable backdrop-filter only on desktop (expensive on mobile) */
+@media (min-width: 1024px) {
+  .glass {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+}
+
+/* Frosted glass - more subtle, for headers/navbars */
+.frost-glass {
+  background: var(--bg-primary)/80;
+  border-bottom: 1px solid var(--border-color)/50;
+}
+
+@media (min-width: 1024px) {
+  .frost-glass {
+    backdrop-filter: blur(10px) saturate(180%);
+    -webkit-backdrop-filter: blur(10px) saturate(180%);
+  }
+}
+
+.glass-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  transition: all 0.3s ease;
+}
+
+.glass-card:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.08);
+}
+
+/* Reduce box-shadow on mobile for performance */
+@media (max-width: 768px) {
+  .glass-card:hover {
+    box-shadow: none;
+  }
+}
+
+/* Accent text - solid color */
+.gradient-text {
+  color: var(--accent-primary);
+}
+
+/* Accent button - solid color, subtle style */
+.btn-gradient {
+  background: var(--accent-primary);
+  color: white;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.btn-gradient:hover {
+  opacity: 0.9;
+}
+
+/* Mobile - same behavior */
+@media (max-width: 768px) {
+  .btn-gradient:hover {
+    opacity: 0.9;
+  }
+}
+
+.btn-gradient:active {
+  opacity: 0.8;
+}
+
+.btn-gradient:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Platform tabs */
+.platform-tab {
+  padding: 0.75rem 1.25rem;
+  border-radius: 10px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid transparent;
+}
+
+.platform-tab:hover {
+  background: var(--bg-card);
+  color: var(--text-primary);
+}
+
+.platform-tab.active {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border-color: var(--accent-primary);
+}
+
+.platform-tab.facebook.active {
+  border-color: var(--facebook);
+  box-shadow: 0 0 20px rgba(24, 119, 242, 0.2);
+}
+
+.platform-tab.instagram.active {
+  border-color: var(--instagram);
+  box-shadow: 0 0 20px rgba(228, 64, 95, 0.2);
+}
+
+.platform-tab.twitter.active {
+  border-color: var(--text-primary);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+}
+
+/* Input styles */
+.input-url {
+  width: 100%;
+  max-width: 100%;
+  padding: 1rem 1.25rem;
+  background: var(--bg-secondary);
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  color: var(--text-primary);
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.input-url:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.2);
+}
+
+.input-url::placeholder {
+  color: var(--text-muted);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Quality badges */
+.quality-badge {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+}
+
+.quality-badge:hover {
+  border-color: var(--accent-primary);
+  color: var(--text-primary);
+}
+
+.quality-badge.selected {
+  background: var(--accent-gradient);
+  border-color: transparent;
+  color: white;
+}
+
+/* Loading skeleton */
+.skeleton {
+  background: linear-gradient(90deg,
+      var(--bg-secondary) 25%,
+      var(--bg-card) 50%,
+      var(--bg-secondary) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+
+/* Spinning border animation for input card */
+@property --border-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes spin-border {
+  to {
+    --border-angle: 360deg;
+  }
+}
+
+/* Only enable spin animation when explicitly applied (not always running) */
+.animate-spin-slow {
+  animation: spin-border 3s linear infinite;
+}
+
+/* Disable animation on mobile for performance */
+@media (max-width: 768px) {
+  .animate-spin-slow {
+    animation: none;
+  }
+}
+
+/* Disable animation when user prefers reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .animate-spin-slow {
+    animation: none;
+  }
+}
+
+
+/* Shiny border animation for preview cards */
+.shiny-border {
+  position: relative;
+  overflow: visible;
+}
+
+.shiny-border::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 2px;
+  background: conic-gradient(from var(--border-angle, 0deg),
+      var(--accent-primary) 0%,
+      var(--accent-secondary) 25%,
+      transparent 50%,
+      var(--accent-secondary) 75%,
+      var(--accent-primary) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+  animation: spin-border 4s linear infinite;
+  opacity: 0.6;
+}
+
+.shiny-border:hover::before {
+  opacity: 1;
+}
+
+/* Disable shiny-border animation on mobile for performance */
+@media (max-width: 768px) {
+  .shiny-border::before {
+    animation: none;
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    opacity: 0.3;
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   ACCESSIBILITY STYLES
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Keyboard focus styles - only show when using keyboard */
+.keyboard-user *:focus {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+/* Remove focus outline for mouse users */
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Focus visible for keyboard navigation */
+*:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+/* Screen reader only */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Reduced motion preference - only disable heavy/decorative animations */
+@media (prefers-reduced-motion: reduce) {
+  /* Disable decorative/continuous animations */
+  .animate-spin,
+  .animate-pulse,
+  .animate-spin-slow,
+  .skeleton {
+    animation: none !important;
+  }
+  
+  .shiny-border::before {
+    animation: none !important;
+  }
+  
+  /* Keep essential UI transitions but make them faster */
+  /* Note: Framer Motion handles its own reduced-motion, so we don't override * */
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --border-color: currentColor;
+  }
+  
+  .glass-card {
+    border-width: 2px;
+  }
+}
