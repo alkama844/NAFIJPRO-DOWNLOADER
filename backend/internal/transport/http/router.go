@@ -33,6 +33,8 @@ func NewRouter(h *handlers.Handler, cfg config.Config) http.Handler {
 	r.Get("/health", h.Health)
 	r.Get("/api/settings", h.Settings)
 	r.Get("/api/v1/stats/public", h.PublicStats)
+	r.Get("/api/v1/status", h.Status)
+	r.Get("/api/v1/communications", h.Communications)
 	r.Get("/metrics", h.Metrics)
 
 	r.Route("/api/web", func(web chi.Router) {
