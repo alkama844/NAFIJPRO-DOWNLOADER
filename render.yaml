@@ -24,7 +24,7 @@ services:
       - key: WEB_INTERNAL_SHARED_SECRET
         generateValue: true
       - key: ALLOWED_ORIGINS
-        value: "https://*.vercel.app,https://downloader.nafij.me,https://downloader.nafijrahaman.me"
+        value: "https://downloader-nafijrahaman.vercel.app,https://downloader.nafij.me"
       - key: MERGE_ENABLED
         value: "true"
       - key: UPSTREAM_TIMEOUT_MS
