@@ -1,0 +1,9 @@
+fauntend/
+.git/
+node_modules/
+.github/
+*.md
+.gitignore
+.env.example
+package.json
+package-lock.json

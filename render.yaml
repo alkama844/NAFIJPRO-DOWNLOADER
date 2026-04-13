@@ -2,12 +2,11 @@ services:
   - type: web
     name: downloader-api
     runtime: docker
-    dockerfilePath: ./backend/Dockerfile
-    dockerContext: ./backend
+    dockerfilePath: Dockerfile
+    dockerContext: backend
     region: oregon
     plan: pro
     autoDeploy: true
-    autoScaleDomain: true
     healthCheckPath: /health
     healthCheckInterval: 30
     healthCheckTimeout: 5
