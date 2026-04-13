@@ -1,0 +1,65 @@
+{
+  "framework": "nextjs",
+  "rootDirectory": "fauntend",
+  "buildCommand": "npm run build",
+  "installCommand": "npm install",
+  "nodeVersion": "20.17.0",
+  "regions": ["iad1"],
+  "functions": {
+    "fauntend/src/app/api/**": {
+      "memory": 512,
+      "maxDuration": 30
+    }
+  },
+  "env": [
+    {
+      "key": "NEXT_PUBLIC_API_URL",
+      "value": "@NEXT_PUBLIC_API_URL",
+      "type": "secret"
+    },
+    {
+      "key": "NEXT_PUBLIC_BASE_URL",
+      "value": "@NEXT_PUBLIC_BASE_URL",
+      "type": "secret"
+    },
+    {
+      "key": "WEB_INTERNAL_SHARED_SECRET",
+      "value": "@WEB_INTERNAL_SHARED_SECRET",
+      "type": "secret"
+    },
+    {
+      "key": "BACKEND_URL",
+      "value": "@BACKEND_URL",
+      "type": "secret"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/sw.js",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" },
+        { "key": "Service-Worker-Allowed", "value": "/" }
+      ]
+    },
+    {
+      "source": "/_next/static/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    },
+    {
+      "source": "/((?!_next/static|_next/image|.*\\.(?:png|jpg|jpeg|gif|webp|ico|svg|woff|woff2|css|js)).*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" },
+        { "key": "Pragma", "value": "no-cache" },
+        { "key": "Expires", "value": "0" }
+      ]
+    }
+  ]
+}
