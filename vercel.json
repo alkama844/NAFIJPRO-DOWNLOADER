@@ -2,13 +2,13 @@
   "$schema": "https://openapi.vercel.com/vercel.json",
   "framework": "nextjs",
   "rootDirectory": "fauntend",
-  "buildCommand": "cd fauntend && npm run build",
-  "installCommand": "cd fauntend && npm install",
+  "buildCommand": "npm run build",
+  "installCommand": "npm install",
   "nodeVersion": "20",
-  "outputDirectory": "fauntend/.next",
+  "outputDirectory": ".next",
   "regions": ["iad1"],
   "functions": {
-    "fauntend/src/app/api/**": {
+    "src/app/api/**": {
       "memory": 1024,
       "maxDuration": 30
     }
