@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -58,7 +59,12 @@ func (h *Handler) Extract(w http.ResponseWriter, r *http.Request) {
 
 	builder.WithCookieSource(cookieSourceLabel(strings.TrimSpace(req.Cookie)))
 
-	result, err := h.extractor.Extract(r.Context(), extraction.ExtractInput{
+	// Create a context with timeout for the extract operation (max 85 seconds)
+	// This prevents extraction from hanging indefinitely
+	ctx, cancel := context.WithTimeout(r.Context(), 85*time.Second)
+	defer cancel()
+
+	result, err := h.extractor.Extract(ctx, extraction.ExtractInput{
 		URL:    req.URL,
 		Cookie: req.Cookie,
 	})

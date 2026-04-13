@@ -16,9 +16,9 @@ if (!API_URL && typeof window !== 'undefined') {
 }
 
 // Default configuration
-const DEFAULT_TIMEOUT = 60000; // 60 seconds for scraping operations (some platforms are slow)
+const DEFAULT_TIMEOUT = 90000; // 90 seconds for scraping operations (some platforms are very slow)
 const DEFAULT_RETRIES = 3;
-const CONNECTION_TIMEOUT = 15000; // 15 seconds for initial connection check
+const CONNECTION_TIMEOUT = 30000; // 30 seconds for initial connection check (backend scraping can take time)
 
 // NO MORE OFFLINE CACHING - always try fresh connection
 
