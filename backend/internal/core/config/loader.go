@@ -11,36 +11,40 @@ import (
 )
 
 func Load() Config {
-	// Essential configuration from environment
-	port := normalizePort(getEnv("PORT", "8080"))
+	// Essential configuration from environment with production hardcoded fallbacks
+	port := normalizePort(getEnv("PORT", "10000"))
 	allowedOrigins := getCSVEnv("ALLOWED_ORIGINS")
-	webInternalSharedSecret := strings.TrimSpace(getEnv("WEB_INTERNAL_SHARED_SECRET", ""))
+	if len(allowedOrigins) == 0 {
+		// Hardcoded production fallback
+		allowedOrigins = []string{"https://downloader-nafijrahaman.vercel.app"}
+	}
+	webInternalSharedSecret := strings.TrimSpace(getEnv("WEB_INTERNAL_SHARED_SECRET", "nafijrahaman_7f3c9d8a4b2e6f1a9c0d5e8b7a3f2c1d"))
 
 	// Rate limiting
 	globalRateLimitLimit, globalRateLimitWindow := parseGlobalRateLimitWindow(
-		strings.TrimSpace(getEnv("GLOBAL_RATE_LIMIT_WINDOW", "")),
-		60,
+		strings.TrimSpace(getEnv("GLOBAL_RATE_LIMIT_WINDOW", "100/1m")),
+		100,
 		time.Minute,
 	)
 	globalRateLimitRule := formatGlobalRateLimitRule(globalRateLimitLimit, globalRateLimitWindow)
 
 	// Upstream timeout
-	timeoutMS := getIntEnv("UPSTREAM_TIMEOUT_MS", 10000)
+	timeoutMS := getIntEnv("UPSTREAM_TIMEOUT_MS", 15000)
 	if timeoutMS < 1 {
-		timeoutMS = 10000
+		timeoutMS = 15000
 	}
 
 	// Download limits
-	maxDownloadMB := getIntEnv("MAX_DOWNLOAD_SIZE_MB", 1024)
+	maxDownloadMB := getIntEnv("MAX_DOWNLOAD_SIZE_MB", 512)
 	if maxDownloadMB < 1 {
-		maxDownloadMB = 1024
+		maxDownloadMB = 512
 	}
 
 	// Merge
-	mergeEnabled := getBoolEnv("MERGE_ENABLED", false)
+	mergeEnabled := getBoolEnv("MERGE_ENABLED", true)
 
 	// Stats persistence
-	statsPersistEnabled := getBoolEnv("STATS_PERSIST_ENABLED", false)
+	statsPersistEnabled := getBoolEnv("STATS_PERSIST_ENABLED", true)
 	statsPersistFilePath := strings.TrimSpace(getEnv("STATS_PERSIST_FILE_PATH", "./data/public_stats.json"))
 	if statsPersistFilePath == "" {
 		statsPersistFilePath = "./data/public_stats.json"
@@ -55,8 +59,11 @@ func Load() Config {
 	extractionDefaultTTL := getDurationEnv("CACHE_EXTRACTION_TTL", defaultExtractionTTL)
 	cacheProxyHeadTTL := getDurationEnv("CACHE_PROXY_HEAD_TTL", defaultProxyHeadTTL)
 
-	// Auto-generated values
-	publicBaseURL := fmt.Sprintf("http://localhost:%s", port)
+	// Auto-generated values with production fallback
+	publicBaseURL := strings.TrimSpace(getEnv("PUBLIC_BASE_URL", ""))
+	if publicBaseURL == "" {
+		publicBaseURL = "https://nafijpro-downloader.onrender.com"
+	}
 
 	// Hardcoded defaults (not exposed via env)
 	const (
