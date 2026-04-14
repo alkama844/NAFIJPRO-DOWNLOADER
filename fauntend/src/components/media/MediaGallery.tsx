@@ -577,42 +577,19 @@ export function MediaGallery({ data, platform, isOpen, onClose, initialIndex = 0
         onTouchEnd={handleTouchEnd}
       >
         {selectedFormat?.type === 'video' ? (
-          // YouTube video-only (needsMerge) - show thumbnail with warning, no video player
-          platform === 'youtube' && selectedFormat.needsMerge ? (
-            <div className="w-full h-full flex flex-col items-center justify-center relative">
-              {currentThumbnail && (
-                <Image
-                  src={getProxiedThumbnail(currentThumbnail, platform)}
-                  alt={data.title || 'Video'}
-                  fill
-                  className="object-cover"
-                  unoptimized
-                />
-              )}
-              <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center gap-3">
-                <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center">
-                  <Play className="w-8 h-8 text-white ml-1" />
-                </div>
-                <span className="px-4 py-2 text-sm font-medium bg-black/70 text-amber-400 rounded-lg backdrop-blur-sm border border-amber-400/30">
-                  🔇 Preview tidak tersedia - dapat diputar setelah download
-                </span>
-              </div>
-            </div>
-          ) : (
-            // Non-YouTube or combined format - show video player
-            <>
-              <video
-                ref={videoRef}
-                src={getProxyUrl(selectedFormat.url, { platform, inline: true })}
-                poster={currentThumbnail ? getProxiedThumbnail(currentThumbnail, platform) : undefined}
-                className="w-full h-full object-contain"
-                controls
-                autoPlay={canYouTubeAutoplay(selectedFormat, platform)}
-                playsInline
-                onEnded={handleVideoEnded}
-              />
-            </>
-          )
+          // All video formats - show player (YouTube needsMerge only affects download, not preview)
+          <>
+            <video
+              ref={videoRef}
+              src={getProxyUrl(selectedFormat.url, { platform, inline: true })}
+              poster={currentThumbnail ? getProxiedThumbnail(currentThumbnail, platform) : undefined}
+              className="w-full h-full object-contain"
+              controls
+              autoPlay={canYouTubeAutoplay(selectedFormat, platform)}
+              playsInline
+              onEnded={handleVideoEnded}
+            />
+          </>
         ) : selectedFormat?.type === 'audio' ? (
           // Audio Player with thumbnail background
           <div className="w-full h-full flex flex-col items-center justify-center p-4 bg-gradient-to-b from-purple-900/50 to-black">

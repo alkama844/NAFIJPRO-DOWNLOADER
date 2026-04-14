@@ -308,14 +308,31 @@ export function AIChat({ className = '' }: AIChatProps) {
                 }),
             });
 
-            const data = await response.json();
+            // Check HTTP status first
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                const errorMsg = typeof errorData?.error === 'string' ? errorData.error :
+                                typeof errorData?.error === 'object' && errorData?.error ? JSON.stringify(errorData.error) :
+                                `HTTP ${response.status}: ${response.statusText}`;
+                throw new Error(errorMsg);
+            }
+
+            let data;
+            try {
+                data = await response.json();
+            } catch (parseErr) {
+                throw new Error(`Invalid response format: ${parseErr instanceof Error ? parseErr.message : 'Unknown error'}`);
+            }
 
             if (data.rateLimit) {
                 setRateLimit(data.rateLimit);
             }
 
             if (!data.success) {
-                throw new Error(data.error || 'Failed to get response');
+                const errorMsg = typeof data.error === 'string' ? data.error :
+                                typeof data.error === 'object' && data.error ? JSON.stringify(data.error) :
+                                'Failed to get response';
+                throw new Error(errorMsg);
             }
 
             // Update session key
@@ -336,7 +353,11 @@ export function AIChat({ className = '' }: AIChatProps) {
             setMessages(prev => [...prev, assistantMessage]);
 
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Something went wrong');
+            const errorMessage = err instanceof Error ? err.message :
+                                typeof err === 'string' ? err :
+                                typeof err === 'object' && err !== null ? JSON.stringify(err, null, 2) :
+                                'Something went wrong';
+            setError(errorMessage);
         } finally {
             setIsLoading(false);
         }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Users, Search, ShieldCheck, UserCheck, Edit, Trash2, RefreshCw, ChevronLeft, ChevronRight, UserPlus, Ban, X, Gift, Plus, Copy, Crown, Check, Clock } from 'lucide-react';
 import Swal from 'sweetalert2';
@@ -104,6 +104,11 @@ function UsersTab() {
 
     const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+    // Track mounted state and in-flight request
+    const isMountedRef = useRef(true);
+    const abortControllerRef = useRef<AbortController | null>(null);
+    const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
     const getAuthHeaders = useCallback((): Record<string, string> => {
         const headers: Record<string, string> = { 'Content-Type': 'application/json' };
         const supabaseKey = Object.keys(localStorage).find(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
@@ -116,28 +121,70 @@ function UsersTab() {
         return headers;
     }, []);
 
+    // Debounced fetchUsers with abort controller
     const fetchUsers = useCallback(async () => {
-        setLoading(true);
-        try {
-            const params = new URLSearchParams({
-                page: page.toString(),
-                limit: '10',
-                ...(search && { search }),
-                ...(roleFilter && { role: roleFilter }),
-                ...(statusFilter && { status: statusFilter })
-            });
-            const res = await fetch(`${API_URL}/api/admin/users?${params}`, { headers: getAuthHeaders() });
-            const json = await res.json();
-            if (json.success) {
-                setUsers(json.data.users);
-                setTotalPages(json.data.totalPages);
-                setTotal(json.data.total);
+        // Cancel previous request
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+        }
+
+        // Cancel previous debounce timeout
+        if (fetchTimeoutRef.current) {
+            clearTimeout(fetchTimeoutRef.current);
+        }
+
+        // Set loading and debounce the fetch
+        if (isMountedRef.current) setLoading(true);
+
+        fetchTimeoutRef.current = setTimeout(async () => {
+            if (!isMountedRef.current) return;
+
+            try {
+                abortControllerRef.current = new AbortController();
+                const params = new URLSearchParams({
+                    page: page.toString(),
+                    limit: '10',
+                    ...(search && { search }),
+                    ...(roleFilter && { role: roleFilter }),
+                    ...(statusFilter && { status: statusFilter })
+                });
+                const res = await fetch(`${API_URL}/api/admin/users?${params}`, {
+                    headers: getAuthHeaders(),
+                    signal: abortControllerRef.current.signal
+                });
+                const json = await res.json();
+                if (json.success && isMountedRef.current) {
+                    setUsers(json.data.users);
+                    setTotalPages(json.data.totalPages);
+                    setTotal(json.data.total);
+                }
+            } catch (err) {
+                // Ignore abort errors
+                if (err instanceof Error && err.name !== 'AbortError' && isMountedRef.current) {
+                    console.error('Failed to fetch users:', err);
+                }
+            } finally {
+                if (isMountedRef.current) setLoading(false);
             }
-        } catch { /* ignore */ }
-        setLoading(false);
+        }, 300); // 300ms debounce
     }, [page, search, roleFilter, statusFilter, API_URL, getAuthHeaders]);
 
-    useEffect(() => { fetchUsers(); }, [fetchUsers]);
+    useEffect(() => {
+        fetchUsers();
+    }, [fetchUsers]);
+
+    // Cleanup on unmount
+    useEffect(() => {
+        return () => {
+            isMountedRef.current = false;
+            if (abortControllerRef.current) {
+                abortControllerRef.current.abort();
+            }
+            if (fetchTimeoutRef.current) {
+                clearTimeout(fetchTimeoutRef.current);
+            }
+        };
+    }, []);
 
     const toast = (icon: 'success' | 'error', title: string) => {
         Swal.fire({ toast: true, position: 'top-end', icon, title, showConfirmButton: false, timer: 1500, background: 'var(--bg-card)', color: 'var(--text-primary)' });

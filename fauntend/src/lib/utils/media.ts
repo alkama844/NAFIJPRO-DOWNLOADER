@@ -234,10 +234,8 @@ export function canYouTubeAutoplay(format: MediaFormat | null, platform: Platfor
     // Audio can always autoplay
     if (format.type === 'audio') return true;
 
-    // Video: only 360p (combined) has audio, others are video-only
-    // needsMerge means video-only (no audio until downloaded)
-    if (format.type === 'video' && format.needsMerge) return false;
-
+    // Video: all formats can play and autoplay
+    // needsMerge only affects DOWNLOAD (merge requirement), not preview streaming
     return true;
 }
 

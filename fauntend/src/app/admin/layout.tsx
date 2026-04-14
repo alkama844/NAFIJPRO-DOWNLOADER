@@ -82,12 +82,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     // Force solarized theme in admin console
     useEffect(() => {
         // Save current theme before switching
-        const currentTheme = document.documentElement.classList.contains('theme-dark') 
-            ? 'dark' 
-            : document.documentElement.classList.contains('theme-light') 
-                ? 'light' 
+        const currentTheme = document.documentElement.classList.contains('theme-dark')
+            ? 'dark'
+            : document.documentElement.classList.contains('theme-light')
+                ? 'light'
                 : 'solarized';
-        
+
         if (currentTheme !== 'solarized') {
             setPreviousTheme(currentTheme);
             // Apply solarized theme
@@ -102,7 +102,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 document.documentElement.classList.add(`theme-${previousTheme}`);
             }
         };
-    }, [previousTheme]);
+    }, []); // Empty dependency - only run once on mount
 
     // Admin fetch with auth token injection
     const adminFetch = useCallback(async (url: string, options: RequestInit = {}) => {
@@ -137,20 +137,26 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     // Check Supabase auth session
     useEffect(() => {
+        let mounted = true;
+
         const checkAuth = async () => {
             try {
                 // Check Supabase session
                 const { session } = await getSession();
-                
+
+                if (!mounted) return;
+
                 if (!session?.user) {
                     // No session - redirect to login
                     router.push('/auth');
                     return;
                 }
-                
+
                 // Get user profile from database
                 const { profile } = await getUserProfile();
-                
+
+                if (!mounted) return;
+
                 if (profile) {
                     setUser({
                         id: profile.id,
@@ -169,27 +175,34 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         display_name: session.user.email?.split('@')[0],
                     });
                 }
-                
-                setIsLoading(false);
+
+                if (mounted) setIsLoading(false);
             } catch (error) {
-                console.error('Auth check failed:', error);
-                router.push('/auth');
+                if (mounted) {
+                    console.error('Auth check failed:', error instanceof Error ? error.message : String(error));
+                    router.push('/auth');
+                }
             }
         };
-        
+
         checkAuth();
-        
+
         // Listen for auth state changes
+        let subscription: any = null;
         if (supabase) {
-            const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-                if (event === 'SIGNED_OUT' || !session) {
+            const { data } = supabase.auth.onAuthStateChange((event, session) => {
+                if (mounted && (event === 'SIGNED_OUT' || !session)) {
                     router.push('/');
                 }
             });
-            
-            return () => subscription.unsubscribe();
+            subscription = data.subscription;
         }
-    }, [router]);
+
+        return () => {
+            mounted = false;
+            if (subscription) subscription.unsubscribe();
+        };
+    }, []);
 
     // Close mobile menu on route change
     useEffect(() => {
