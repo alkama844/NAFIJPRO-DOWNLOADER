@@ -1,4 +1,9 @@
-# COPY-PASTE READY: Backend Integration
+# Backend .env
+DATABASE_URL="postgresql://..."
+GROQ_API_KEY="gsk_..."
+
+# Frontend .env.local  
+NEXT_PUBLIC_API_URL="https://nafijpro-downloader.onrender.com"# COPY-PASTE READY: Backend Integration
 
 ## Add to `/backend/cmd/server/main.go`
 

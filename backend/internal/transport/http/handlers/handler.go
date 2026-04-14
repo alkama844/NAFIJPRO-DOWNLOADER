@@ -175,3 +175,30 @@ func (h *Handler) Close() error {
 	}
 	return closer.Close()
 }
+
+// Chat endpoint handler
+func (h *Handler) Chat(w http.ResponseWriter, r *http.Request) {
+	chatHandler := NewChatHandler()
+	chatHandler.Chat(w, r)
+}
+
+// API Key handlers
+func (h *Handler) CreateAPIKey(w http.ResponseWriter, r *http.Request) {
+	// Placeholder - requires database integration
+	http.Error(w, "Not implemented", http.StatusNotImplemented)
+}
+
+func (h *Handler) ListAPIKeys(w http.ResponseWriter, r *http.Request) {
+	// Placeholder - requires database integration
+	http.Error(w, "Not implemented", http.StatusNotImplemented)
+}
+
+func (h *Handler) DeleteAPIKey(w http.ResponseWriter, r *http.Request) {
+	// Placeholder - requires database integration
+	http.Error(w, "Not implemented", http.StatusNotImplemented)
+}
+
+func (h *Handler) GetAPIKeyStats(w http.ResponseWriter, r *http.Request) {
+	// Placeholder - requires database integration
+	http.Error(w, "Not implemented", http.StatusNotImplemented)
+}

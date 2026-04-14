@@ -100,7 +100,18 @@ func NewRouter(h *handlers.Handler, cfg config.Config) http.Handler {
 		v1.Options("/merge", func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusNoContent)
 		})
+
+		// Chat endpoint
+		v1.Post("/chat", h.Chat)
+		v1.Options("/chat", func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusNoContent)
+		})
 	})
 
-	return r
-}
+	// Admin API Key routes
+	r.Route("/api/admin", func(admin chi.Router) {
+		admin.Post("/api-keys/create", h.CreateAPIKey)
+		admin.Get("/api-keys", h.ListAPIKeys)
+		admin.Delete("/api-keys", h.DeleteAPIKey)
+		admin.Get("/api-keys/stats", h.GetAPIKeyStats)
+	})
