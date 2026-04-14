@@ -51,13 +51,7 @@ func New(cfg config.Config) *Application {
 		middleware.CORS(cfg.AllowedOrigins),
 		middleware.RequestID,
 		middleware.StructuredLogging,
-		fetch('https://nafijpro-downloader.onrender.com/api/v1/extract', {
-		  method: 'POST',
-		  headers: { 'Content-Type': 'application/json' },
-		  body: JSON.stringify({ url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' })
-		})
-		.then(r => r.json())
-		.then(d => console.log(JSON.stringify(d, null, 2)))		// Rate limiting disabled for debugging
+		// Rate limiting disabled for debugging
 		// middleware.RateLimit(limiter),
 		// middleware.RouteRateLimit([]middleware.RouteLimitRule{
 		// 	{Method: http.MethodPost, Path: "/api/v1/merge", Limiter: mergeLimiter},
