@@ -52,7 +52,6 @@ const NAV_ITEMS = {
         { href: '/admin/access', label: 'Access', icon: Key },
     ],
     admin: [
-        { href: '/admin/ai-keys', label: 'AI Keys', icon: MessageSquare },
         { href: '/admin/platforms', label: 'Platforms', icon: Globe },
         { href: '/admin/resources', label: 'Resources', icon: Database },
         { href: '/admin/users', label: 'Users', icon: Users },
