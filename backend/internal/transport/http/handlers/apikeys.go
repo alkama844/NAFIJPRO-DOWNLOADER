@@ -161,11 +161,13 @@ func (h *APIKeyHandler) DeleteAPIKey(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"message": "Key deleted"})
 }
 
-// GetKeyStats gets usage stats for a key
+// GetKeyStats gets usage stats for a specific or all keys
 func (h *APIKeyHandler) GetKeyStats(w http.ResponseWriter, r *http.Request) {
 	keyID := r.URL.Query().Get("id")
+
+	// If no specific key ID, return general stats
 	if keyID == "" {
-		http.Error(w, "Key ID required", http.StatusBadRequest)
+		h.GetGeneralStats(w, r)
 		return
 	}
 
@@ -195,6 +197,46 @@ func (h *APIKeyHandler) GetKeyStats(w http.ResponseWriter, r *http.Request) {
 
 	if lastUsed.Valid {
 		stats["last_used"] = lastUsed.Time
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(stats)
+}
+
+// GetGeneralStats gets overall stats for all API keys
+func (h *APIKeyHandler) GetGeneralStats(w http.ResponseWriter, r *http.Request) {
+	var totalKeys, activeKeys, totalUsage int
+
+	// Get total and active keys
+	err := h.db.QueryRow(`
+		SELECT
+			COUNT(*) as total,
+			COUNT(CASE WHEN enabled = true THEN 1 END) as active
+		FROM api_keys
+		WHERE deleted_at IS NULL
+	`).Scan(&totalKeys, &activeKeys)
+
+	if err != nil {
+		http.Error(w, "Failed to fetch key stats", http.StatusInternalServerError)
+		return
+	}
+
+	// Get total usage
+	err = h.db.QueryRow(`
+		SELECT COUNT(*) as total
+		FROM api_key_usage
+	`).Scan(&totalUsage)
+
+	if err != nil {
+		// If table doesn't exist or is empty, that's OK
+		totalUsage = 0
+	}
+
+	stats := map[string]interface{}{
+		"total_keys":   totalKeys,
+		"active_keys":  activeKeys,
+		"total_usage":  totalUsage,
+		"providers":    make(map[string]interface{}),
 	}
 
 	w.Header().Set("Content-Type", "application/json")
