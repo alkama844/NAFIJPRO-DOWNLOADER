@@ -841,9 +841,10 @@ export async function downloadMergedYouTube(
 
         let response: Response;
         try {
-            // Call merge API with abort signal and retry logic
+            // Call local merge API endpoint (which forwards to backend)
+            // Using local route instead of backend directly to avoid CORS and authorization issues
             response = await fetchWithRetry(
-                `${API_URL}/api/v1/merge`,
+                '/api/web/merge',
                 {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -876,7 +877,17 @@ export async function downloadMergedYouTube(
             try {
                 if (contentType.includes('application/json')) {
                     const error = await response.json();
-                    errorMessage = error.error || error.message || `HTTP ${response.status}`;
+                    // Handle different error response formats
+                    if (typeof error.error === 'string') {
+                        errorMessage = error.error;
+                    } else if (typeof error.message === 'string') {
+                        errorMessage = error.message;
+                    } else if (error.error && typeof error.error === 'object') {
+                        // If error is an object, try to extract message
+                        errorMessage = (error.error as any).message || JSON.stringify(error.error).substring(0, 100);
+                    } else {
+                        errorMessage = `HTTP ${response.status}`;
+                    }
                 } else {
                     const text = await response.text();
                     errorMessage = text.substring(0, 200) || `HTTP ${response.status}`;
@@ -1109,6 +1120,7 @@ export async function downloadMedia(
                 ? format.quality // "M4A" or "MP3"
                 : format.quality; // "1080p", "720p", etc
 
+            // Use local /api/web/merge route instead of backend directly
             const result = await downloadMergedYouTube(
                 data.url, // Original YouTube URL
                 qualityParam, // e.g., "1080p", "720p", "320kbps", "MP3"

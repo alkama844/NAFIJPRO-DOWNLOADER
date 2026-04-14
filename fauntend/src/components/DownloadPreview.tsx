@@ -331,7 +331,7 @@ export function DownloadPreview({ data, platform, onDownloadComplete }: Download
 
             console.log(`[AudioConvert] Extracting from ${bestVideoForAudio.quality} video`);
 
-            const response = await fetch(`${RENDER_API_URL}/api/v1/merge`, {
+            const response = await fetch('/api/web/merge', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
