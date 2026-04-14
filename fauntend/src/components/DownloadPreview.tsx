@@ -308,27 +308,27 @@ export function DownloadPreview({ data, platform, onDownloadComplete }: Download
 
         try {
             const allFormats = groupedItems[itemId] || formats;
-            
+
             // Find best quality video for audio extraction
             const videoFormats = allFormats.filter(f => f.type === 'video');
-            
+
             let bestVideoForAudio: MediaFormat | undefined;
-            
+
             // Sort by quality preference for audio (medium-high is best)
             const qualityOrder = ['1080p', '720p', 'HD', 'FHD', '480p', '1440p', '4K', '2160p', '360p', 'SD'];
-            
+
             for (const q of qualityOrder) {
-                bestVideoForAudio = videoFormats.find(f => 
+                bestVideoForAudio = videoFormats.find(f =>
                     f.quality.toLowerCase().includes(q.toLowerCase())
                 );
                 if (bestVideoForAudio) break;
             }
-            
+
             // Fallback to first video if no quality match
             if (!bestVideoForAudio) {
                 bestVideoForAudio = videoFormats[0] || format;
             }
-            
+
             console.log(`[AudioConvert] Extracting from ${bestVideoForAudio.quality} video`);
 
             const response = await fetch(`${RENDER_API_URL}/api/v1/merge`, {
@@ -343,14 +343,30 @@ export function DownloadPreview({ data, platform, onDownloadComplete }: Download
             });
 
             if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.error || 'Conversion failed');
+                let errorMsg = `HTTP ${response.status}`;
+                try {
+                    const errorData = await response.json();
+                    errorMsg = errorData.error || errorData.message || errorMsg;
+                    // Handle case where error is an object
+                    if (typeof errorMsg === 'object') {
+                        errorMsg = errorMsg.message || JSON.stringify(errorMsg).substring(0, 100);
+                    }
+                } catch (parseErr) {
+                    // If JSON parsing fails, try to get text
+                    try {
+                        const text = await response.text();
+                        if (text) {
+                            errorMsg = text.substring(0, 100);
+                        }
+                    } catch {}
+                }
+                throw new Error(errorMsg);
             }
 
             // Get the blob and trigger download
             const blob = await response.blob();
             const filename = `${data.title || 'audio'}.${audioFormat}`;
-            
+
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -361,7 +377,7 @@ export function DownloadPreview({ data, platform, onDownloadComplete }: Download
             URL.revokeObjectURL(url);
 
             setAudioConvertStatus(prev => ({ ...prev, [key]: 'success' }));
-            
+
             Swal.fire({
                 icon: 'success',
                 title: 'Audio Extracted!',
@@ -380,11 +396,24 @@ export function DownloadPreview({ data, platform, onDownloadComplete }: Download
         } catch (error) {
             console.error('Audio conversion error:', error);
             setAudioConvertStatus(prev => ({ ...prev, [key]: 'error' }));
-            
+
+            let errorMsg = 'Failed to convert to audio';
+            if (error instanceof Error) {
+                errorMsg = error.message;
+            } else if (typeof error === 'string') {
+                errorMsg = error;
+            } else if (error && typeof error === 'object') {
+                const err = error as any;
+                errorMsg = err.error || err.message || err.toString();
+                if (errorMsg.includes('[object Object]')) {
+                    errorMsg = 'Conversion failed - server error';
+                }
+            }
+
             Swal.fire({
                 icon: 'error',
                 title: 'Conversion Failed',
-                text: error instanceof Error ? error.message : 'Failed to convert to audio',
+                text: errorMsg,
                 toast: true,
                 position: 'top-end',
                 showConfirmButton: false,
@@ -953,7 +982,11 @@ export function DownloadPreview({ data, platform, onDownloadComplete }: Download
             } else if (typeof e === 'string') {
                 errorMessage = e;
             } else if (e && typeof e === 'object') {
-                errorMessage = JSON.stringify(e);
+                const err = e as any;
+                errorMessage = err.error || err.message || JSON.stringify(err);
+                if (errorMessage.includes('[object Object]')) {
+                    errorMessage = 'Download failed - please try again';
+                }
             }
 
             // Show error to user
