@@ -5,8 +5,7 @@
 
 import useSWR from 'swr';
 import { fetcher, SWR_CONFIG } from '@/lib/swr';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+import { API_URL } from '@/lib/config';
 
 interface PlaygroundStatusResponse {
     success: boolean;

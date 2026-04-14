@@ -3,11 +3,28 @@
  * Centralized data fetching with caching, deduplication, and smart revalidation
  */
 
+// Helper to extract error message from response
+async function getErrorMessage(res: Response): Promise<string> {
+  try {
+    const data = await res.json();
+    if (data.error) return data.error;
+    if (data.message) return data.message;
+  } catch {
+    try {
+      return await res.text();
+    } catch {
+      return res.statusText;
+    }
+  }
+  return `HTTP ${res.status}`;
+}
+
 // Default fetcher for SWR
 export const fetcher = async <T>(url: string): Promise<T> => {
     const res = await fetch(url);
     if (!res.ok) {
-        const error = new Error('An error occurred while fetching the data.');
+        const errorMsg = await getErrorMessage(res);
+        const error = new Error(`HTTP ${res.status}: ${errorMsg}`);
         throw error;
     }
     return res.json();
@@ -17,7 +34,8 @@ export const fetcher = async <T>(url: string): Promise<T> => {
 export const adminFetcher = async <T>(url: string): Promise<T> => {
     const res = await fetch(url, { credentials: 'include' });
     if (!res.ok) {
-        const error = new Error('An error occurred while fetching the data.');
+        const errorMsg = await getErrorMessage(res);
+        const error = new Error(`HTTP ${res.status}: ${errorMsg}`);
         throw error;
     }
     return res.json();
@@ -31,7 +49,8 @@ export const postFetcher = async <T>(url: string, data: unknown): Promise<T> => 
         body: JSON.stringify(data),
     });
     if (!res.ok) {
-        const error = new Error('An error occurred while posting the data.');
+        const errorMsg = await getErrorMessage(res);
+        const error = new Error(`HTTP ${res.status}: ${errorMsg}`);
         throw error;
     }
     return res.json();

@@ -9,8 +9,8 @@ import {
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { STORAGE_KEYS } from '@/lib/storage/settings';
+import { API_URL } from '@/lib/config';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
 // Use unified storage key
 const STORAGE_KEY = STORAGE_KEYS.AI;
 

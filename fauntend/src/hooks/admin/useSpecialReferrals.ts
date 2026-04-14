@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { useAdminFetch } from './useAdminFetch';
+import { API_URL } from '@/lib/config';
 import Swal from 'sweetalert2';
 
 export interface SpecialReferral {
@@ -46,7 +47,6 @@ export function useSpecialReferrals() {
     const createReferral = useCallback(async (referralData: CreateReferralData): Promise<SpecialReferral | null> => {
         setSaving(true);
         try {
-            const API_URL = process.env.NEXT_PUBLIC_API_URL;
             if (!API_URL) throw new Error('API_URL not configured');
             const headers: Record<string, string> = { 'Content-Type': 'application/json' };
             
@@ -86,7 +86,6 @@ export function useSpecialReferrals() {
     const updateReferral = useCallback(async (id: string, updates: Partial<SpecialReferral>): Promise<boolean> => {
         setSaving(true);
         try {
-            const API_URL = process.env.NEXT_PUBLIC_API_URL;
             if (!API_URL) throw new Error('API_URL not configured');
             const headers: Record<string, string> = { 'Content-Type': 'application/json' };
             
@@ -138,7 +137,6 @@ export function useSpecialReferrals() {
 
         setSaving(true);
         try {
-            const API_URL = process.env.NEXT_PUBLIC_API_URL;
             if (!API_URL) throw new Error('API_URL not configured');
             const headers: Record<string, string> = { 'Content-Type': 'application/json' };
             

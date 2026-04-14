@@ -51,12 +51,11 @@ func New(cfg config.Config) *Application {
 		middleware.CORS(cfg.AllowedOrigins),
 		middleware.RequestID,
 		middleware.StructuredLogging,
-		// Rate limiting disabled for debugging
-		// middleware.RateLimit(limiter),
-		// middleware.RouteRateLimit([]middleware.RouteLimitRule{
-		// 	{Method: http.MethodPost, Path: "/api/v1/merge", Limiter: mergeLimiter},
-		// 	{Method: http.MethodPost, Path: "/api/web/merge", Limiter: mergeLimiter},
-		// }),
+		middleware.RateLimit(limiter),
+		middleware.RouteRateLimit([]middleware.RouteLimitRule{
+			{Method: http.MethodPost, Path: "/api/v1/merge", Limiter: mergeLimiter},
+			{Method: http.MethodPost, Path: "/api/web/merge", Limiter: mergeLimiter},
+		}),
 	)
 
 	port := strings.TrimSpace(cfg.Port)

@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { generateWebSignature } from '../_internal/signature';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'https://nafijpro-downloader.onrender.com';
 const WEB_INTERNAL_SHARED_SECRET = process.env.WEB_INTERNAL_SHARED_SECRET || '';
 
 export async function POST(req: NextRequest) {
@@ -10,10 +10,19 @@ export async function POST(req: NextRequest) {
     const bodyText = await req.text();
     const body = JSON.parse(bodyText);
 
+    // Get Origin header from incoming request
+    const originHeader = req.headers.get('origin') || req.headers.get('referer') || '';
+    const origin = originHeader ? new URL(originHeader).origin : '';
+
     // Generate signature for backend
     let headers: HeadersInit = {
       'Content-Type': 'application/json',
     };
+
+    // Add Origin header for backend validation
+    if (origin) {
+      headers['Origin'] = origin;
+    }
 
     if (WEB_INTERNAL_SHARED_SECRET) {
       // Sign request using WEB_INTERNAL_SHARED_SECRET
