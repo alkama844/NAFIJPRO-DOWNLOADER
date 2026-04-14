@@ -29,13 +29,42 @@ type Referral = {
 
 // Helper to convert errors to readable strings
 function getErrorMessage(error: unknown): string {
-  if (error instanceof Error) return error.message;
-  if (typeof error === 'string') return error;
-  if (error && typeof error === 'object' && 'message' in error) {
-    return String((error as any).message);
+  if (error instanceof Error) {
+    return error.message;
   }
-  if (error && typeof error === 'object' && 'error' in error) {
-    return String((error as any).error);
+  if (typeof error === 'string') {
+    return error;
+  }
+  if (error && typeof error === 'object') {
+    const err = error as any;
+
+    // Try message property first
+    if (err.message && typeof err.message === 'string') {
+      return err.message;
+    }
+
+    // Try error property
+    if (err.error && typeof err.error === 'string') {
+      return err.error;
+    }
+
+    // Try data.error (API response structure)
+    if (err.data?.error && typeof err.data.error === 'string') {
+      return err.data.error;
+    }
+
+    // Try status text
+    if (err.statusText && typeof err.statusText === 'string') {
+      return err.statusText;
+    }
+
+    // Last resort: check if it looks like JSON
+    try {
+      const str = JSON.stringify(err);
+      if (str && str !== '{}' && !str.includes('[object Object]')) {
+        return str.substring(0, 150);
+      }
+    } catch {}
   }
   return 'An unknown error occurred';
 }
@@ -106,11 +135,29 @@ export default function AdminDashboard() {
       const data = await res.json();
       if (data.success) {
         setUsers(data.data);
-        setUserTotal(data.pagination.total);
+        setUserTotal(data.pagination?.total || 0);
         setUserPage(page);
+      } else {
+        console.error('Failed to load users:', data.error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Failed to Load Users',
+          text: data.error || 'Could not load users',
+          background: 'var(--bg-card)',
+          color: 'var(--text-primary)',
+          timer: 3000,
+        });
       }
     } catch (error) {
       console.error('Error loading users:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: getErrorMessage(error),
+        background: 'var(--bg-card)',
+        color: 'var(--text-primary)',
+        timer: 3000,
+      });
     }
   };
 
@@ -122,11 +169,29 @@ export default function AdminDashboard() {
       const data = await res.json();
       if (data.success) {
         setReferrals(data.data);
-        setRefTotal(data.pagination.total);
+        setRefTotal(data.pagination?.total || 0);
         setRefPage(page);
+      } else {
+        console.error('Failed to load referrals:', data.error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Failed to Load Referrals',
+          text: data.error || 'Could not load referrals',
+          background: 'var(--bg-card)',
+          color: 'var(--text-primary)',
+          timer: 3000,
+        });
       }
     } catch (error) {
       console.error('Error loading referrals:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: getErrorMessage(error),
+        background: 'var(--bg-card)',
+        color: 'var(--text-primary)',
+        timer: 3000,
+      });
     }
   };
 
@@ -407,9 +472,15 @@ export default function AdminDashboard() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && password && !isLoading) {
+                      handleLogin(e as unknown as React.FormEvent);
+                    }
+                  }}
                   className="input-url w-full"
                   placeholder="Enter admin password"
                   disabled={isLoading}
+                  autoFocus
                 />
               </div>
               <Button
@@ -426,7 +497,8 @@ export default function AdminDashboard() {
             {/* Tabs */}
             <div className="flex gap-2 mb-8 border-b border-[var(--border-color)]">
               <button
-                onClick={() => { setTab('users'); loadUsers(1); }}
+                type="button"
+                onClick={(e) => { e.preventDefault(); setTab('users'); loadUsers(1); }}
                 className={`flex items-center gap-2 px-4 py-3 font-medium border-b-2 transition ${
                   tab === 'users'
                     ? 'border-[var(--accent-primary)] text-[var(--accent-primary)]'
@@ -436,7 +508,8 @@ export default function AdminDashboard() {
                 <Users className="w-4 h-4" /> Users
               </button>
               <button
-                onClick={() => { setTab('referrals'); loadReferrals(1); }}
+                type="button"
+                onClick={(e) => { e.preventDefault(); setTab('referrals'); loadReferrals(1); }}
                 className={`flex items-center gap-2 px-4 py-3 font-medium border-b-2 transition ${
                   tab === 'referrals'
                     ? 'border-[var(--accent-primary)] text-[var(--accent-primary)]'
