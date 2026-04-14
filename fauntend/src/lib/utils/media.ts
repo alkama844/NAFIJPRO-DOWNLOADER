@@ -878,13 +878,19 @@ export async function downloadMergedYouTube(
                 if (contentType.includes('application/json')) {
                     const error = await response.json();
                     // Handle different error response formats
-                    if (typeof error.error === 'string') {
-                        errorMessage = error.error;
-                    } else if (typeof error.message === 'string') {
+                    if (error.message && typeof error.message === 'string') {
                         errorMessage = error.message;
-                    } else if (error.error && typeof error.error === 'object') {
-                        // If error is an object, try to extract message
-                        errorMessage = (error.error as any).message || JSON.stringify(error.error).substring(0, 100);
+                    } else if (error.error && typeof error.error === 'string') {
+                        errorMessage = error.error;
+                    } else if (error.error?.message && typeof error.error.message === 'string') {
+                        errorMessage = error.error.message;
+                    } else if (typeof error === 'object') {
+                        // Last resort: try to stringify but avoid [object Object]
+                        const str = Object.entries(error)
+                            .map(([k, v]) => `${k}: ${typeof v === 'string' ? v : JSON.stringify(v)}`)
+                            .join(', ')
+                            .substring(0, 150);
+                        errorMessage = str || `HTTP ${response.status}`;
                     } else {
                         errorMessage = `HTTP ${response.status}`;
                     }
