@@ -118,6 +118,8 @@ func NewRouter(h *handlers.Handler, cfg config.Config) http.Handler {
 
 		// Aliases for frontend compatibility (with/without hyphens)
 		admin.Get("/apikeys", h.ListAPIKeys)
+		admin.Post("/apikeys", h.CreateAPIKey) // POST support for apikeys endpoint
+		admin.Delete("/apikeys", h.DeleteAPIKey) // DELETE support for apikeys endpoint
 		admin.Get("/stats", h.GetAPIKeyStats)
 		admin.Get("/services", h.GetAPIKeyStats) // Same as stats for now
 	})

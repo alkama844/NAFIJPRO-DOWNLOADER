@@ -26,9 +26,12 @@ func (h *APIKeyHandler) CreateAPIKey(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req struct {
+		Action            string `json:"action"`
 		Name              string `json:"name"`
 		RateLimitPerMin   int    `json:"rate_limit_per_minute"`
+		RateLimit         int    `json:"rateLimit"`
 		ExpireInDays      int    `json:"expire_in_days"`
+		ValidityDays      int    `json:"validityDays"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -41,8 +44,18 @@ func (h *APIKeyHandler) CreateAPIKey(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.RateLimitPerMin == 0 {
-		req.RateLimitPerMin = 60
+	// Handle both field name formats
+	rateLimit := req.RateLimitPerMin
+	if rateLimit == 0 && req.RateLimit > 0 {
+		rateLimit = req.RateLimit
+	}
+	if rateLimit == 0 {
+		rateLimit = 60
+	}
+
+	expireInDays := req.ExpireInDays
+	if expireInDays == 0 && req.ValidityDays > 0 {
+		expireInDays = req.ValidityDays
 	}
 
 	// Generate random key
@@ -52,8 +65,8 @@ func (h *APIKeyHandler) CreateAPIKey(w http.ResponseWriter, r *http.Request) {
 
 	// Set expiration
 	var expireAt *time.Time
-	if req.ExpireInDays > 0 {
-		exp := time.Now().AddDate(0, 0, req.ExpireInDays)
+	if expireInDays > 0 {
+		exp := time.Now().AddDate(0, 0, expireInDays)
 		expireAt = &exp
 	}
 
@@ -63,7 +76,7 @@ func (h *APIKeyHandler) CreateAPIKey(w http.ResponseWriter, r *http.Request) {
 		INSERT INTO api_keys (key_hash, key_preview, name, rate_limit_per_minute, expire_at)
 		VALUES ($1, $2, $3, $4, $5)
 		RETURNING id
-	`, keyHash, keyPreview, req.Name, req.RateLimitPerMin, expireAt).Scan(&keyID)
+	`, keyHash, keyPreview, req.Name, rateLimit, expireAt).Scan(&keyID)
 
 	if err != nil {
 		http.Error(w, "Failed to create key", http.StatusInternalServerError)
@@ -72,11 +85,15 @@ func (h *APIKeyHandler) CreateAPIKey(w http.ResponseWriter, r *http.Request) {
 
 	// Return key (only shown once!)
 	resp := map[string]interface{}{
-		"id":     keyID,
-		"key":    key,
-		"preview": keyPreview,
-		"name":   req.Name,
-		"message": "⚠️  Copy this key now - it won't be shown again!",
+		"success": true,
+		"data": map[string]interface{}{
+			"id":      keyID,
+			"key":     key,
+			"preview": keyPreview,
+			"name":    req.Name,
+		},
+		"plainKey": key,
+		"message":  "⚠️  Copy this key now - it won't be shown again!",
 	}
 
 	w.Header().Set("Content-Type", "application/json")
