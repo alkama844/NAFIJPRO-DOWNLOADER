@@ -63,7 +63,7 @@ func (h *ChatHandler) Chat(w http.ResponseWriter, r *http.Request) {
 
 	// Hardcoded Groq settings
 	groqURL := "https://api.groq.com/openai/v1/chat/completions"
-	model := "mixtral-8x7b-32768"
+	model := "llama-3.1-70b-versatile"
 
 	// Prepare request to Groq
 	groqReq := map[string]interface{}{
