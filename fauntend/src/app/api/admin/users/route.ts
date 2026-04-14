@@ -5,7 +5,12 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 const supabase = supabaseUrl && supabaseServiceKey
-  ? createClient(supabaseUrl, supabaseServiceKey)
+  ? createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+      },
+    })
   : null;
 
 /**
@@ -20,11 +25,9 @@ function verifyAdminPassword(request: NextRequest): boolean {
   const authHeader = request.headers.get('authorization') || '';
   const providedPassword = authHeader.replace('Bearer ', '').trim();
 
-  // Debug log in development
   if (process.env.NODE_ENV !== 'production') {
-    console.log('[Auth Debug] Expected:', adminPassword.length, 'chars');
-    console.log('[Auth Debug] Provided:', providedPassword.length, 'chars');
-    console.log('[Auth Debug] Match:', providedPassword === adminPassword);
+    console.log('[Auth] Admin password length:', adminPassword.length);
+    console.log('[Auth] Provided password length:', providedPassword.length);
   }
 
   return providedPassword === adminPassword;
@@ -41,6 +44,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (!supabase) {
+      console.error('Supabase not configured');
       return NextResponse.json({ error: 'Database not configured' }, { status: 500 });
     }
 
@@ -48,15 +52,38 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(request.nextUrl.searchParams.get('limit') || '20');
     const offset = (page - 1) * limit;
 
+    console.log(`[Users] Fetching page ${page}, limit ${limit}, offset ${offset}`);
+
+    // Use RLS bypass with service role key
     const { data: users, error, count } = await supabase
       .from('users')
-      .select('*', { count: 'exact' })
+      .select('id, email, username, role, created_at, updated_at, is_banned, ban_reason', { count: 'exact' })
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      console.error('[Users] Query error:', error);
+      return NextResponse.json(
+        { error: `Database error: ${error.message}` },
+        { status: 500 }
+      );
     }
+
+    if (!users) {
+      console.warn('[Users] No users returned');
+      return NextResponse.json({
+        success: true,
+        data: [],
+        pagination: {
+          page,
+          limit,
+          total: count || 0,
+          pages: 0,
+        },
+      });
+    }
+
+    console.log(`[Users] Fetched ${users.length} users, total: ${count}`);
 
     return NextResponse.json({
       success: true,
@@ -64,11 +91,15 @@ export async function GET(request: NextRequest) {
       pagination: {
         page,
         limit,
-        total: count,
+        total: count || 0,
         pages: Math.ceil((count || 0) / limit),
       },
     });
   } catch (error) {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error('[Users] Exception:', error);
+    return NextResponse.json(
+      { error: `Internal server error: ${error instanceof Error ? error.message : 'Unknown'}` },
+      { status: 500 }
+    );
   }
 }
