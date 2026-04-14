@@ -719,8 +719,8 @@ GROUP BY schemaname, tablename;
 SELECT
   'Indexes Created' as status,
   count(*) as index_count
-FROM information_schema.statistics
-WHERE table_schema = 'public' AND table_name NOT LIKE 'pg_%';
+FROM pg_indexes
+WHERE schemaname = 'public';
 
 -- =====================================================================
 -- SETUP COMPLETE

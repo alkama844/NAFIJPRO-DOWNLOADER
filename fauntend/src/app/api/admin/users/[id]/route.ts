@@ -36,7 +36,7 @@ function verifyAdminPassword(request: NextRequest): boolean {
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     if (!verifyAdminPassword(request)) {
@@ -47,7 +47,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Database not configured' }, { status: 500 });
     }
 
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
 
     console.log(`[Users] Updating user ${id}:`, body);
@@ -86,7 +86,7 @@ export async function PATCH(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     if (!verifyAdminPassword(request)) {
@@ -97,7 +97,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Database not configured' }, { status: 500 });
     }
 
-    const { id } = params;
+    const { id } = await params;
 
     console.log(`[Users] Deleting user ${id}`);
 
