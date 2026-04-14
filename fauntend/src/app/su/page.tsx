@@ -95,10 +95,17 @@ export default function AdminDashboard() {
     setIsLoading(true);
 
     try {
+      // Debug: Show password attempt details
+      console.log('[Login] Attempting login with password...');
+      console.log('[Login] Password length:', password.length);
+      console.log('[Login] Password first 3 chars:', password.slice(0, 3));
+
       // Verify password by making a dummy API request
       const response = await fetch('/api/admin/users', {
         headers: { Authorization: `Bearer ${password}` },
       });
+
+      console.log('[Login] Response status:', response.status);
 
       if (response.ok) {
         setAdminToken(password);
@@ -106,19 +113,32 @@ export default function AdminDashboard() {
         setPassword('');
         await loadUsers(1);
       } else {
+        const errorData = await response.json().catch(() => ({}));
+        console.log('[Login] Error response:', errorData);
+
+        // Show detailed error for debugging
+        const errorMsg = response.status === 401
+          ? `Authentication failed (401). Check your password and that ADMIN_PASSWORD is set on Vercel.`
+          : `Server error: ${response.status}`;
+
         Swal.fire({
           icon: 'error',
-          title: 'Invalid Password',
-          text: 'The password you entered is incorrect.',
+          title: 'Login Failed',
+          html: `<div style="text-align: left; font-size: 12px">
+            <p><strong>Status:</strong> ${response.status}</p>
+            <p><strong>Error:</strong> ${errorData.error || 'Unknown error'}</p>
+            <p style="margin-top: 10px; color: #888">Debug: Check browser console (F12)</p>
+          </div>`,
           background: 'var(--bg-card)',
           color: 'var(--text-primary)',
         });
       }
     } catch (error) {
+      console.error('[Login] Exception:', error);
       Swal.fire({
         icon: 'error',
-        title: 'Error',
-        text: 'Failed to verify password',
+        title: 'Connection Error',
+        text: 'Failed to connect to server. Check your internet connection.',
         background: 'var(--bg-card)',
         color: 'var(--text-primary)',
       });

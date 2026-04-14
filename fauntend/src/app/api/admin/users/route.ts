@@ -18,19 +18,31 @@ const supabase = supabaseUrl && supabaseServiceKey
  */
 function verifyAdminPassword(request: NextRequest): boolean {
   const adminPassword = process.env.ADMIN_PASSWORD?.trim();
+
   if (!adminPassword) {
-    console.error('ADMIN_PASSWORD not configured');
+    console.error('[Auth] ADMIN_PASSWORD not configured in environment');
     return false;
   }
+
   const authHeader = request.headers.get('authorization') || '';
   const providedPassword = authHeader.replace('Bearer ', '').trim();
 
-  if (process.env.NODE_ENV !== 'production') {
-    console.log('[Auth] Admin password length:', adminPassword.length);
-    console.log('[Auth] Provided password length:', providedPassword.length);
+  console.log('[Auth] Checking password...');
+  console.log('[Auth] Admin password length:', adminPassword.length);
+  console.log('[Auth] Provided password length:', providedPassword.length);
+  console.log('[Auth] First 3 chars of admin password:', adminPassword.slice(0, 3));
+  console.log('[Auth] First 3 chars of provided:', providedPassword.slice(0, 3));
+
+  const isMatch = providedPassword === adminPassword;
+  console.log('[Auth] Match result:', isMatch);
+
+  if (!isMatch && process.env.NODE_ENV !== 'production') {
+    console.log('[Auth] Password mismatch!');
+    console.log('[Auth] Admin password bytes:', Buffer.from(adminPassword).toString('hex'));
+    console.log('[Auth] Provided bytes:', Buffer.from(providedPassword).toString('hex'));
   }
 
-  return providedPassword === adminPassword;
+  return isMatch;
 }
 
 /**
