@@ -137,13 +137,14 @@ async function fetchWithRetry(
             if (error instanceof OfflineError) {
                 throw error;
             }
-            
-            // Don't retry if it was a timeout (AbortError converted to TimeoutError)
+
+            // Retry on timeout - slow platforms may need multiple attempts
             if (error instanceof TimeoutError) {
-                throw error;
+                lastError = error;
+                // Continue to next retry attempt
+            } else {
+                lastError = error instanceof Error ? error : new Error(String(error));
             }
-            
-            lastError = error instanceof Error ? error : new Error(String(error));
         }
         
         // If it's the last attempt, don't wait

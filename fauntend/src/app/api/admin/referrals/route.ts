@@ -11,7 +11,7 @@ const supabase = supabaseUrl && supabaseServiceKey
 function verifyAdminPassword(request: NextRequest): boolean {
   const authHeader = request.headers.get('authorization') || '';
   const providedPassword = authHeader.replace('Bearer ', '');
-  const adminPassword = process.env.ADMIN_PASSWORD || 'nafijpro++bd'; // Hardcoded production password
+  if (!process.env.ADMIN_PASSWORD) return false; const adminPassword = process.env.ADMIN_PASSWORD; // Hardcoded production password
   return providedPassword === adminPassword;
 }
 

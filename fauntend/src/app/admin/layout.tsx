@@ -51,7 +51,7 @@ const NAV_ITEMS = {
         { href: '/admin', label: 'Overview', icon: LayoutDashboard },
         { href: '/admin/access', label: 'Access', icon: Key },
         { href: '/admin/api-keys', label: 'API Keys', icon: Shield },
-        { href: '/admin/extract-playground', label: 'Extract Playground', icon: Database },
+        { href: '/admin/chat', label: 'Chat API', icon: MessageSquare },
     ],
     admin: [
         { href: '/admin/platforms', label: 'Platforms', icon: Globe },

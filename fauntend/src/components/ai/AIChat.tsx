@@ -14,10 +14,11 @@ import { API_URL } from '@/lib/config';
 // Use unified storage key
 const STORAGE_KEY = STORAGE_KEYS.AI;
 
-type AIModel = 'gemini-2.5-flash' | 'gemini-flash-latest' | 'gpt5' | 'copilot-smart';
+type AIModel = 'groq-llama-3.1-70b' | 'groq-llama-3.1-8b' | 'gemini-2.5-flash' | 'gemini-flash-latest' | 'gpt5' | 'copilot-smart';
 
 // Models that support image upload and web search (Gemini only)
 const GEMINI_MODELS: AIModel[] = ['gemini-2.5-flash', 'gemini-flash-latest'];
+const GROQ_MODELS: AIModel[] = ['groq-llama-3.1-70b', 'groq-llama-3.1-8b'];
 
 interface ChatMessage {
     id: string;
@@ -42,6 +43,8 @@ interface AIChatProps {
 }
 
 const MODEL_OPTIONS: { value: AIModel; label: string; description: string }[] = [
+    { value: 'groq-llama-3.1-70b', label: 'Groq Llama 70B', description: 'Fast & powerful' },
+    { value: 'groq-llama-3.1-8b', label: 'Groq Llama 8B', description: 'Quick & efficient' },
     { value: 'gemini-2.5-flash', label: 'Flash 2.5', description: 'Fast & balanced' },
     { value: 'gemini-flash-latest', label: 'Flash Latest', description: 'Newest version' },
     { value: 'gpt5', label: 'GPT-5', description: 'OpenAI GPT-5' },
@@ -53,7 +56,7 @@ export function AIChat({ className = '' }: AIChatProps) {
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [sessionKey, setSessionKey] = useState<string | null>(null);
-    const [model, setModel] = useState<AIModel>('gemini-2.5-flash');
+    const [model, setModel] = useState<AIModel>('groq-llama-3.1-70b');
 
     // Check if current model supports image/web search (Gemini only)
     const supportsAdvancedFeatures = GEMINI_MODELS.includes(model);
@@ -384,9 +387,10 @@ export function AIChat({ className = '' }: AIChatProps) {
                         <div>
                             <h3 className="font-semibold text-sm">AI Assistant</h3>
                             <p className="text-xs text-[var(--text-muted)]">
-                                {model === 'gpt5' ? 'GPT-5' :
-                                    model === 'copilot-smart' ? 'Copilot Smart' :
-                                        'Powered by Gemini'}
+                                {model.startsWith('groq') ? 'Powered by Groq' :
+                                    model === 'gpt5' ? 'GPT-5' :
+                                        model === 'copilot-smart' ? 'Copilot Smart' :
+                                            'Powered by Gemini'}
                             </p>
                         </div>
                     </div>
@@ -577,7 +581,7 @@ export function AIChat({ className = '' }: AIChatProps) {
             </div>
 
             {/* Warning Banner for non-session models */}
-            {!supportsAdvancedFeatures && (
+            {!GEMINI_MODELS.includes(model) && !GROQ_MODELS.includes(model) && (
                 <div className="px-4 py-2 bg-amber-500/10 border-b border-amber-500/20">
                     <p className="text-xs text-amber-400 text-center">
                         ⚠️ {model === 'gpt5' ? 'GPT-5' : 'Copilot Smart'} tidak mendukung session. Setiap pesan adalah chat baru.

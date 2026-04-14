@@ -12,10 +12,13 @@ const supabase = supabaseUrl && supabaseServiceKey
  * Verify admin password from Authorization header
  */
 function verifyAdminPassword(request: NextRequest): boolean {
+  if (!process.env.ADMIN_PASSWORD) {
+    console.error('ADMIN_PASSWORD not configured');
+    return false;
+  }
   const authHeader = request.headers.get('authorization') || '';
   const providedPassword = authHeader.replace('Bearer ', '');
-  const adminPassword = process.env.ADMIN_PASSWORD || 'nafijpro++bd'; // Hardcoded production password
-  return providedPassword === adminPassword;
+  return providedPassword === process.env.ADMIN_PASSWORD;
 }
 
 /**
