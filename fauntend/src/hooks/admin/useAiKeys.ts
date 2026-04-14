@@ -4,7 +4,7 @@ import { useState, useCallback } from 'react';
 import { useAdminFetch } from './useAdminFetch';
 import Swal from 'sweetalert2';
 
-export type AiProvider = 'gemini' | 'openai' | 'anthropic' | 'other';
+export type AiProvider = 'groq' | 'gemini' | 'openai' | 'anthropic' | 'claude' | 'azure' | 'other';
 
 // Backend response format from /api/admin/ai-keys
 interface AiApiKeyRaw {
@@ -155,7 +155,7 @@ export function useAiKeys() {
     }));
 
     // Stats from backend or calculate from keys
-    const defaultByProvider: Record<AiProvider, number> = { gemini: 0, openai: 0, anthropic: 0, other: 0 };
+    const defaultByProvider: Record<AiProvider, number> = { groq: 0, gemini: 0, openai: 0, anthropic: 0, claude: 0, azure: 0, other: 0 };
     const stats: AiStats = {
         totalKeys: data?.stats?.total ?? keys.length,
         activeKeys: data?.stats?.enabled ?? keys.filter(k => k.enabled).length,

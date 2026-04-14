@@ -390,7 +390,7 @@ function AddKeyModal({
 }) {
     const [provider, setProvider] = useState<'groq' | 'openai' | 'gemini' | 'claude' | 'azure'>('groq');
     const [apiKey, setApiKey] = useState('');
-    const [model, setModel] = useState('mixtral-8x7b-32768');
+    const [model, setModel] = useState('llama-3.1-70b-versatile');
     const [priority, setPriority] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
@@ -398,7 +398,7 @@ function AddKeyModal({
     const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
 
     const modelsByProvider: Record<string, string[]> = {
-        groq: ['mixtral-8x7b-32768', 'llama2-70b-4096', 'gemma-7b-it'],
+        groq: ['llama-3.1-70b-versatile', 'llama-3.1-8b-instant', 'mixtral-8x7b-32768'],
         openai: ['gpt-4', 'gpt-4-turbo', 'gpt-3.5-turbo'],
         gemini: ['gemini-pro', 'gemini-pro-vision'],
         claude: ['claude-3-opus', 'claude-3-sonnet', 'claude-3-haiku'],

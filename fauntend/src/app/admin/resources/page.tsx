@@ -351,9 +351,12 @@ function CookiesTab({ getStats, onSelectPlatform }: CookiesTabProps) {
 // AI KEYS TAB
 // ============================================
 const PROVIDER_CONFIG: Record<AiProvider, { label: string; color: string; bgColor: string; placeholder: string }> = {
+    groq: { label: 'Groq', color: 'text-blue-400', bgColor: 'bg-blue-500/10', placeholder: 'gsk_...' },
     gemini: { label: 'Gemini', color: 'text-yellow-400', bgColor: 'bg-yellow-500/10', placeholder: 'AIza...' },
     openai: { label: 'OpenAI', color: 'text-green-400', bgColor: 'bg-green-500/10', placeholder: 'sk-...' },
     anthropic: { label: 'Anthropic', color: 'text-orange-400', bgColor: 'bg-orange-500/10', placeholder: 'sk-ant-...' },
+    claude: { label: 'Claude', color: 'text-purple-400', bgColor: 'bg-purple-500/10', placeholder: 'sk-ant-...' },
+    azure: { label: 'Azure', color: 'text-cyan-400', bgColor: 'bg-cyan-500/10', placeholder: 'azure-key...' },
     other: { label: 'Other', color: 'text-gray-400', bgColor: 'bg-gray-500/10', placeholder: 'API key...' },
 };
 
@@ -372,7 +375,7 @@ function AIKeysTab({ keys, stats, loading, saving, onRefresh, onAdd, onToggle, o
     const [showAddForm, setShowAddForm] = useState(false);
     const [newKeyName, setNewKeyName] = useState('');
     const [newKeyValue, setNewKeyValue] = useState('');
-    const [newKeyProvider, setNewKeyProvider] = useState<AiProvider>('gemini');
+    const [newKeyProvider, setNewKeyProvider] = useState<AiProvider>('groq');
     const [filterProvider, setFilterProvider] = useState<AiProvider | 'all'>('all');
     const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set());
 
@@ -382,7 +385,7 @@ function AIKeysTab({ keys, stats, loading, saving, onRefresh, onAdd, onToggle, o
         if (success) {
             setNewKeyName('');
             setNewKeyValue('');
-            setNewKeyProvider('gemini');
+            setNewKeyProvider('groq');
             setShowAddForm(false);
         }
     };
@@ -428,15 +431,18 @@ function AIKeysTab({ keys, stats, loading, saving, onRefresh, onAdd, onToggle, o
             <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
                     <Filter className="w-4 h-4 text-[var(--text-muted)]" />
-                    <select 
-                        value={filterProvider} 
+                    <select
+                        value={filterProvider}
                         onChange={(e) => setFilterProvider(e.target.value as AiProvider | 'all')}
                         className="px-3 py-1.5 rounded-lg bg-[var(--bg-secondary)] border border-[var(--border-color)] text-sm"
                     >
                         <option value="all">All Providers</option>
+                        <option value="groq">Groq</option>
                         <option value="gemini">Gemini</option>
                         <option value="openai">OpenAI</option>
                         <option value="anthropic">Anthropic</option>
+                        <option value="claude">Claude</option>
+                        <option value="azure">Azure</option>
                         <option value="other">Other</option>
                     </select>
                     <span className="text-sm text-[var(--text-muted)]">
@@ -472,9 +478,12 @@ function AIKeysTab({ keys, stats, loading, saving, onRefresh, onAdd, onToggle, o
                                         onChange={e => setNewKeyProvider(e.target.value as AiProvider)}
                                         className="w-full px-3 py-2 rounded-lg bg-[var(--bg-secondary)] border border-[var(--border-color)] text-sm"
                                     >
+                                        <option value="groq">Groq</option>
                                         <option value="gemini">Gemini</option>
                                         <option value="openai">OpenAI</option>
                                         <option value="anthropic">Anthropic</option>
+                                        <option value="claude">Claude</option>
+                                        <option value="azure">Azure</option>
                                         <option value="other">Other</option>
                                     </select>
                                 </div>

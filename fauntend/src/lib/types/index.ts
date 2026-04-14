@@ -9,7 +9,7 @@ export type UserStatus = 'active' | 'frozen' | 'banned';
 export type ApiKeyType = 'public' | 'private';
 
 /** AI provider enum */
-export type AiProvider = 'gemini' | 'openai' | 'anthropic' | 'other';
+export type AiProvider = 'groq' | 'gemini' | 'openai' | 'anthropic' | 'claude' | 'azure' | 'other';
 
 /** Cookie status enum */
 export type CookieStatus = 'healthy' | 'cooldown' | 'expired' | 'disabled';
