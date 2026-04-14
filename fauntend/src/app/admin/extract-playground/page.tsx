@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Play, Copy, Download } from 'lucide-react';
 
 interface ExtractResponse {
+  video_url?: string;
   [key: string]: unknown;
 }
 
