@@ -59,7 +59,7 @@ export default function ExtractPlaygroundPage() {
     }
   };
 
-  const copyToClipboard = (text) => {
+  const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
   };
 

@@ -56,7 +56,7 @@ export default function APIKeysPage() {
     }
   };
 
-  const handleDeleteKey = async (keyId) => {
+  const handleDeleteKey = async (keyId: string) => {
     if (!confirm('Delete this API key?')) return;
 
     try {
@@ -67,7 +67,7 @@ export default function APIKeysPage() {
     }
   };
 
-  const copyToClipboard = (text) => {
+  const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
   };
 
