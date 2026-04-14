@@ -67,34 +67,59 @@ function transformBackendResponse(data: any): Partial<MediaData> {
     }
   }
 
-  // Extract and flatten fields from nested objects
-  let title = data.content?.text || data.title || '';
-  let description = data.content?.description || data.description || '';
-  let authorStr: string | undefined;
+  // Extract title - handle all platform variations
+  let title = data.title || data.content?.text || '';
+  if (!title && data.content?.description) {
+    title = data.content.description.split('\n')[0]; // First line of description
+  }
+  if (!title && data.mediaType) {
+    const platformName = data.platform || 'media';
+    const mediaType = data.mediaType || 'content';
+    title = `${platformName} ${mediaType}`.toUpperCase();
+  }
 
+  // Extract description
+  let description = data.description || data.content?.description || '';
+
+  // Extract author
+  let authorStr: string | undefined;
   if (data.author) {
     if (typeof data.author === 'string') {
       authorStr = data.author;
-    } else if (typeof data.author === 'object' && data.author.name) {
-      authorStr = data.author.name;
+    } else if (typeof data.author === 'object') {
+      authorStr = data.author.name || data.author.handle;
     }
   }
 
-  // Convert engagement numbers to strings for display
+  // Convert engagement numbers to strings
   const views = data.engagement?.views
     ? String(data.engagement.views)
     : (data.views ? String(data.views) : undefined);
 
-  return {
-    title,
-    description,
+  // Extract thumbnail
+  const thumbnail = data.media?.[0]?.thumbnail || data.thumbnail || '';
+
+  // Build result with all required fields
+  const result: Partial<MediaData> = {
+    title: title || 'Media',
+    description: description || '',
     author: authorStr,
     views,
-    url: data.url,
-    thumbnail: data.media?.[0]?.thumbnail || data.thumbnail,
+    url: data.url || '',
+    thumbnail,
     engagement: data.engagement,
     formats: formats.length > 0 ? formats : data.formats || [],
   };
+
+  // Add optional fields if they exist
+  if (data.duration) result.duration = String(data.duration);
+  if (data.authorUrl) result.authorUrl = data.authorUrl;
+  if (data.embedHtml) result.embedHtml = data.embedHtml;
+  if (data.usedCookie !== undefined) result.usedCookie = data.usedCookie;
+  if (data.cached !== undefined) result.cached = data.cached;
+  if (data.responseTime) result.responseTime = data.responseTime;
+
+  return result;
 }
 
 // ═══════════════════════════════════════════════════════════════

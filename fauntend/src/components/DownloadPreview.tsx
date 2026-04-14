@@ -211,7 +211,8 @@ export function DownloadPreview({ data, platform, onDownloadComplete }: Download
                 animate={{ opacity: 1, y: 0 }}
                 className="glass-card p-6 text-center"
             >
-                <p className="text-[var(--text-muted)]">No media formats available</p>
+                <p className="text-[var(--text-muted)]">No media formats available for this content</p>
+                <p className="text-xs mt-2 text-[var(--text-muted)]">This platform may not have supported downloadable content or requires authentication</p>
             </motion.div>
         );
     }

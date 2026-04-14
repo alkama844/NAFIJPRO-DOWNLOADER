@@ -312,6 +312,12 @@ export default function Home() {
         return;
       }
 
+      // Handle YouTube bot detection
+      if (detectedPlatform === 'youtube' && (errorMsg.includes('Sign in to confirm') || errorMsg.includes('bot') || errorMsg.includes('cookies'))) {
+        showError('🤖 YouTube Bot Block', 'YouTube detected unusual activity. YouTube extractions require special setup. This is a YouTube limitation, not a bug. Try: another video, different time, or use your own YouTube session cookies in Settings.', { icon: 'warning', buttonColor: '#ef4444', showSettings: true });
+        return;
+      }
+
       // Handle YouTube extraction timeout from backend
       if (errorMsg.includes('timed out') || errorMsg.includes('timeout')) {
         const extractionMsg = detectedPlatform === 'youtube'
