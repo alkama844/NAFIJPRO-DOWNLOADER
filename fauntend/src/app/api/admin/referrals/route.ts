@@ -168,3 +168,50 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
+
+/**
+ * PATCH /api/admin/referrals
+ * Update referral code
+ */
+export async function PATCH(request: NextRequest) {
+  try {
+    if (!verifyAdminPassword(request)) {
+      return NextResponse.json({ error: 'Invalid password' }, { status: 401 });
+    }
+
+    if (!supabase) {
+      return NextResponse.json({ error: 'Database not configured' }, { status: 500 });
+    }
+
+    const body = await request.json();
+    const { id, ...updateData } = body;
+
+    if (!id) {
+      return NextResponse.json({ error: 'Referral ID required' }, { status: 400 });
+    }
+
+    // Uppercase code if provided
+    if (updateData.code) {
+      updateData.code = updateData.code.toUpperCase();
+    }
+
+    const { data, error } = await supabase
+      .from('special_referrals')
+      .update(updateData)
+      .eq('id', parseInt(id))
+      .select()
+      .single();
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: 'Referral code updated successfully',
+      data,
+    });
+  } catch (error) {
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}

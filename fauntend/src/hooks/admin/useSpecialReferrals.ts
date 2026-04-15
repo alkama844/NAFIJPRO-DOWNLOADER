@@ -12,8 +12,7 @@ export interface SpecialReferral {
     max_uses: number;
     current_uses: number;
     is_active: boolean;
-    note: string | null;
-    created_by: string | null;
+    Note: string | null;
     expires_at: string | null;
     created_at: string;
 }
@@ -47,25 +46,21 @@ export function useSpecialReferrals() {
     const createReferral = useCallback(async (referralData: CreateReferralData): Promise<SpecialReferral | null> => {
         setSaving(true);
         try {
-            if (!API_URL) throw new Error('API_URL not configured');
             const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-            
-            const supabaseKey = Object.keys(localStorage).find(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
-            if (supabaseKey) {
-                try {
-                    const session = JSON.parse(localStorage.getItem(supabaseKey) || '{}');
-                    if (session?.access_token) headers['Authorization'] = `Bearer ${session.access_token}`;
-                } catch { /* ignore */ }
+
+            const adminPassword = localStorage.getItem('admin_password') || '';
+            if (adminPassword) {
+                headers['Authorization'] = `Bearer ${adminPassword}`;
             }
 
-            const res = await fetch(`${API_URL}/api/admin/referrals`, {
+            const res = await fetch(`/api/admin/referrals`, {
                 method: 'POST',
                 headers,
                 body: JSON.stringify(referralData)
             });
-            
+
             const json = await res.json();
-            
+
             if (json.success) {
                 toast('success', 'Referral code created');
                 refetch();
@@ -86,25 +81,21 @@ export function useSpecialReferrals() {
     const updateReferral = useCallback(async (id: string, updates: Partial<SpecialReferral>): Promise<boolean> => {
         setSaving(true);
         try {
-            if (!API_URL) throw new Error('API_URL not configured');
             const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-            
-            const supabaseKey = Object.keys(localStorage).find(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
-            if (supabaseKey) {
-                try {
-                    const session = JSON.parse(localStorage.getItem(supabaseKey) || '{}');
-                    if (session?.access_token) headers['Authorization'] = `Bearer ${session.access_token}`;
-                } catch { /* ignore */ }
+
+            const adminPassword = localStorage.getItem('admin_password') || '';
+            if (adminPassword) {
+                headers['Authorization'] = `Bearer ${adminPassword}`;
             }
 
-            const res = await fetch(`${API_URL}/api/admin/referrals`, {
+            const res = await fetch(`/api/admin/referrals`, {
                 method: 'PATCH',
                 headers,
                 body: JSON.stringify({ id, ...updates })
             });
-            
+
             const json = await res.json();
-            
+
             if (json.success) {
                 toast('success', 'Referral updated');
                 refetch();
@@ -137,24 +128,20 @@ export function useSpecialReferrals() {
 
         setSaving(true);
         try {
-            if (!API_URL) throw new Error('API_URL not configured');
             const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-            
-            const supabaseKey = Object.keys(localStorage).find(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
-            if (supabaseKey) {
-                try {
-                    const session = JSON.parse(localStorage.getItem(supabaseKey) || '{}');
-                    if (session?.access_token) headers['Authorization'] = `Bearer ${session.access_token}`;
-                } catch { /* ignore */ }
+
+            const adminPassword = localStorage.getItem('admin_password') || '';
+            if (adminPassword) {
+                headers['Authorization'] = `Bearer ${adminPassword}`;
             }
 
-            const res = await fetch(`${API_URL}/api/admin/referrals?id=${id}`, {
+            const res = await fetch(`/api/admin/referrals?id=${id}`, {
                 method: 'DELETE',
                 headers
             });
-            
+
             const json = await res.json();
-            
+
             if (json.success) {
                 toast('success', 'Referral deleted');
                 refetch();

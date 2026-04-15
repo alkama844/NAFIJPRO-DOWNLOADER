@@ -111,12 +111,10 @@ function UsersTab() {
 
     const getAuthHeaders = useCallback((): Record<string, string> => {
         const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-        const supabaseKey = Object.keys(localStorage).find(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
-        if (supabaseKey) {
-            try {
-                const session = JSON.parse(localStorage.getItem(supabaseKey) || '{}');
-                if (session?.access_token) headers['Authorization'] = `Bearer ${session.access_token}`;
-            } catch { /* ignore */ }
+        // Get admin password from localStorage or prompt
+        const adminPassword = localStorage.getItem('admin_password') || '';
+        if (adminPassword) {
+            headers['Authorization'] = `Bearer ${adminPassword}`;
         }
         return headers;
     }, []);
@@ -148,15 +146,16 @@ function UsersTab() {
                     ...(roleFilter && { role: roleFilter }),
                     ...(statusFilter && { status: statusFilter })
                 });
-                const res = await fetch(`${API_URL}/api/admin/users?${params}`, {
+                // Use local API route, not backend URL
+                const res = await fetch(`/api/admin/users?${params}`, {
                     headers: getAuthHeaders(),
                     signal: abortControllerRef.current.signal
                 });
                 const json = await res.json();
                 if (json.success && isMountedRef.current) {
-                    setUsers(json.data.users);
-                    setTotalPages(json.data.totalPages);
-                    setTotal(json.data.total);
+                    setUsers(json.data);
+                    setTotalPages(json.pagination.pages);
+                    setTotal(json.pagination.total);
                 }
             } catch (err) {
                 // Ignore abort errors
@@ -167,7 +166,7 @@ function UsersTab() {
                 if (isMountedRef.current) setLoading(false);
             }
         }, 300); // 300ms debounce
-    }, [page, search, roleFilter, statusFilter, API_URL, getAuthHeaders]);
+    }, [page, search, roleFilter, statusFilter, getAuthHeaders]);
 
     useEffect(() => {
         fetchUsers();

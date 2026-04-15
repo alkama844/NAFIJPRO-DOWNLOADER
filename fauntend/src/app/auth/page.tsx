@@ -222,26 +222,41 @@ function AuthContent() {
                     // Process referral - increment usage for special referrals
                     if (referralCode) {
                         try {
-                            // Check if it's a special referral and increment usage
-                            const { data: specialRef } = await supabase
+                            // Check if it's a special referral and increment usage (uppercase to match DB)
+                            const { data: specialRef, error: refError } = await supabase
                                 .from('special_referrals')
                                 .select('id, role')
-                                .eq('code', referralCode)
+                                .eq('code', referralCode.toUpperCase())
                                 .eq('is_active', true)
                                 .single();
 
+                            if (refError && refError.code !== 'PGRST116') {
+                                console.error('[Referral] Error fetching special referral:', refError);
+                            }
+
                             if (specialRef) {
                                 // Increment current_uses using RPC
-                                await supabase.rpc('increment_referral_uses', { referral_id: specialRef.id });
+                                const { error: rpcError } = await supabase.rpc('increment_referral_uses', { referral_id: specialRef.id });
+                                if (rpcError) {
+                                    console.error('[Referral] Error incrementing uses:', rpcError);
+                                } else {
+                                    console.log('[Referral] Successfully incremented uses for code:', referralCode.toUpperCase());
+                                }
                             } else {
-                                // Normal user referral - store referral code
-                                await supabase
+                                // Normal user referral - store referral code (uppercase)
+                                const { error: updateError } = await supabase
                                     .from('users')
-                                    .update({ invited_by: referralCode })
+                                    .update({ invited_by: referralCode.toUpperCase() })
                                     .eq('id', result.data.user.id);
+                                if (updateError) {
+                                    console.error('[Referral] Error storing invited_by:', updateError);
+                                } else {
+                                    console.log('[Referral] Successfully stored invited_by for user');
+                                }
                             }
-                        } catch {
-                            // Referral processing failed silently
+                        } catch (err) {
+                            // Referral processing failed - log the error
+                            console.error('[Referral] Exception during referral processing:', err);
                         }
                     }
                     setSuccess('Account created! You can now sign in.');
