@@ -82,24 +82,31 @@ function AuthContent() {
             setError('Please enter a referral code');
             return;
         }
-        
+
         setIsLoading(true);
         setError('');
-        
+
         try {
             if (!supabase) {
                 setError('Database not connected');
                 return;
             }
-            
+
             // Check special referral codes first (admin codes)
-            const { data: specialRef } = await supabase
+            const { data: specialRef, error: specialError } = await supabase
                 .from('special_referrals')
                 .select('code, role, max_uses, current_uses, is_active, expires_at')
-                .eq('code', referralCode)
+                .eq('code', referralCode.toUpperCase())
                 .eq('is_active', true)
                 .single();
-            
+
+            if (specialError && specialError.code !== 'PGRST116') {
+                // PGRST116 = no rows returned (normal)
+                console.error('[Referral] Special referral query error:', specialError);
+                setError(`Database error: ${specialError.message}`);
+                return;
+            }
+
             if (specialRef) {
                 // Check if not expired
                 if (specialRef.expires_at && new Date(specialRef.expires_at) < new Date()) {
@@ -116,23 +123,31 @@ function AuthContent() {
                 setRegisterStep('details');
                 return;
             }
-            
+
             // Check normal user referral codes
-            const { data: userRef } = await supabase
+            const { data: userRef, error: userError } = await supabase
                 .from('users')
                 .select('username, email, referral_code')
-                .eq('referral_code', referralCode)
+                .eq('referral_code', referralCode.toUpperCase())
                 .single();
-            
+
+            if (userError && userError.code !== 'PGRST116') {
+                // PGRST116 = no rows returned (normal)
+                console.error('[Referral] User referral query error:', userError);
+                setError(`Database error: ${userError.message}`);
+                return;
+            }
+
             if (userRef) {
                 setVerifiedRole('user');
                 setReferrerName(userRef.username || userRef.email);
                 setRegisterStep('details');
                 return;
             }
-            
+
             setError('Invalid or already used referral code');
-        } catch {
+        } catch (err) {
+            console.error('[Referral] Verification exception:', err);
             setError('Failed to verify referral code');
         } finally {
             setIsLoading(false);
