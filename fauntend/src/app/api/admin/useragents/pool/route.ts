@@ -13,9 +13,19 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid password' }, { status: 401 });
   }
   const { searchParams } = new URL(request.url);
-  const stats = searchParams.get('stats');
-  if (stats === 'true') {
-    return NextResponse.json([]);
+  const stats = searchParams.has('stats');
+  if (stats) {
+    return NextResponse.json([
+      {
+        platform: 'tiktok',
+        device_type: 'mobile',
+        total: 0,
+        enabled_count: 0,
+        total_uses: 0,
+        total_success: 0,
+        total_errors: 0,
+      }
+    ]);
   }
   return NextResponse.json([]);
 }

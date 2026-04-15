@@ -1,5 +1,29 @@
 'use client';
 
+/**
+ * ISSUE 6.1 - NOT IMPLEMENTED
+ *
+ * This page is currently DISABLED and hidden from navigation.
+ *
+ * Problem: The page is completely non-functional with only hardcoded mock data:
+ * - All provider data is hardcoded (no backend integration)
+ * - Copy buttons copy mock strings instead of real data
+ * - Settings buttons don't actually save or persist anything
+ * - Usage stats are fake values
+ *
+ * Decision: Given time constraints and that chat is not a critical feature,
+ * this page was removed from navigation rather than building a backend.
+ *
+ * To restore:
+ * 1. Implement real backend endpoints for chat provider management
+ * 2. Create database schema for storing chat configurations
+ * 3. Update this page to use real API calls via hooks
+ * 4. Re-add the navigation link in admin/layout.tsx
+ *
+ * The page remains in the codebase for future implementation.
+ * Users can still access it manually by navigating to /admin/chat
+ */
+
 import { useState } from 'react';
 import { MessageCircle, Settings, Key, Zap, AlertCircle, Check, Copy } from 'lucide-react';
 import AdminGuard from '@/components/AdminGuard';

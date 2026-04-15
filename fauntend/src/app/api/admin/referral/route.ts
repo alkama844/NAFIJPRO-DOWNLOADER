@@ -30,11 +30,22 @@ interface CreateReferralRequest {
  */
 export async function POST(request: NextRequest) {
   try {
-    // Check for authorization (in production, use proper auth)
-    const authHeader = request.headers.get('authorization');
-    const isAuthorized = authHeader?.includes(process.env.ADMIN_SECRET_KEY || '');
+    // Check for authorization using centralized auth
+    const adminPassword = process.env.ADMIN_PASSWORD?.trim();
 
-    if (!isAuthorized && process.env.NODE_ENV === 'production') {
+    if (!adminPassword) {
+      console.error('[Auth] ADMIN_PASSWORD not configured');
+      return NextResponse.json(
+        { error: 'Server configuration error' },
+        { status: 500 }
+      );
+    }
+
+    const authHeader = request.headers.get('authorization') || '';
+    const providedPassword = authHeader.replace('Bearer ', '').trim();
+    const isAuthorized = providedPassword === adminPassword;
+
+    if (!isAuthorized) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }

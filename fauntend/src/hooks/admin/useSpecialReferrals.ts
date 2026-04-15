@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { useAdminFetch } from './useAdminFetch';
+import { useAdminFetch, getAdminHeaders } from './useAdminFetch';
 import { API_URL } from '@/lib/config';
 import Swal from 'sweetalert2';
 
@@ -46,12 +46,7 @@ export function useSpecialReferrals() {
     const createReferral = useCallback(async (referralData: CreateReferralData): Promise<SpecialReferral | null> => {
         setSaving(true);
         try {
-            const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-
-            const adminPassword = localStorage.getItem('admin_password') || '';
-            if (adminPassword) {
-                headers['Authorization'] = `Bearer ${adminPassword}`;
-            }
+            const headers = getAdminHeaders();
 
             const res = await fetch(`/api/admin/referrals`, {
                 method: 'POST',
@@ -81,17 +76,12 @@ export function useSpecialReferrals() {
     const updateReferral = useCallback(async (id: string, updates: Partial<SpecialReferral>): Promise<boolean> => {
         setSaving(true);
         try {
-            const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+            const headers = getAdminHeaders();
 
-            const adminPassword = localStorage.getItem('admin_password') || '';
-            if (adminPassword) {
-                headers['Authorization'] = `Bearer ${adminPassword}`;
-            }
-
-            const res = await fetch(`/api/admin/referrals`, {
+            const res = await fetch(`/api/admin/referrals/${id}`, {
                 method: 'PATCH',
                 headers,
-                body: JSON.stringify({ id, ...updates })
+                body: JSON.stringify(updates)
             });
 
             const json = await res.json();
@@ -128,12 +118,7 @@ export function useSpecialReferrals() {
 
         setSaving(true);
         try {
-            const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-
-            const adminPassword = localStorage.getItem('admin_password') || '';
-            if (adminPassword) {
-                headers['Authorization'] = `Bearer ${adminPassword}`;
-            }
+            const headers = getAdminHeaders();
 
             const res = await fetch(`/api/admin/referrals?id=${id}`, {
                 method: 'DELETE',

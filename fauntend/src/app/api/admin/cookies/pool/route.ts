@@ -12,11 +12,31 @@ export async function GET(request: NextRequest) {
   if (!verifyAdminPassword(request)) {
     return NextResponse.json({ error: 'Invalid password' }, { status: 401 });
   }
-  return NextResponse.json({
-    success: true,
-    data: [],
-    totalTiers: 0,
-  });
+
+  const { searchParams } = new URL(request.url);
+  const stats = searchParams.has('stats');
+
+  if (stats) {
+    // Return stats format
+    return NextResponse.json([
+      {
+        platform: 'tiktok',
+        tier: 'public',
+        total: 0,
+        enabled_count: 0,
+        healthy_count: 0,
+        cooldown_count: 0,
+        expired_count: 0,
+        disabled_count: 0,
+        total_uses: 0,
+        total_success: 0,
+        total_errors: 0,
+      }
+    ]);
+  }
+
+  // Return cookies array format
+  return NextResponse.json([]);
 }
 
 export async function POST(request: NextRequest) {
@@ -24,7 +44,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid password' }, { status: 401 });
   }
   const body = await request.json();
-  return NextResponse.json({ success: true, message: 'Tier created', data: body });
+  return NextResponse.json({ success: true, message: 'Cookie added', data: body });
 }
 
 export async function PATCH(request: NextRequest) {
@@ -32,14 +52,12 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid password' }, { status: 401 });
   }
   const body = await request.json();
-  return NextResponse.json({ success: true, message: 'Tier updated', data: body });
+  return NextResponse.json({ success: true, message: 'Cookie updated', data: body });
 }
 
 export async function DELETE(request: NextRequest) {
   if (!verifyAdminPassword(request)) {
     return NextResponse.json({ error: 'Invalid password' }, { status: 401 });
   }
-  const { searchParams } = new URL(request.url);
-  const tierId = searchParams.get('id');
-  return NextResponse.json({ success: true, message: `Tier ${tierId} deleted` });
+  return NextResponse.json({ success: true, message: 'Cookies deleted' });
 }

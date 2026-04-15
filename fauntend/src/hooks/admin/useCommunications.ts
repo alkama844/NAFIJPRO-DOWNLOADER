@@ -137,7 +137,7 @@ export function useAnnouncements() {
     }, [mutate, refetch]);
 
     const update = useCallback(async (id: string, updates: Partial<Announcement>) => {
-        const result = await mutate('PUT', updates, `/api/admin/communications/announcements/${id}`);
+        const result = await mutate('PATCH', updates, `/api/admin/communications/announcements/${id}`);
         if (result.success) refetch();
         return result;
     }, [mutate, refetch]);
@@ -172,7 +172,7 @@ export function useBannerAds() {
     }, [mutate, refetch]);
 
     const update = useCallback(async (id: string, updates: Partial<BannerAd>) => {
-        const result = await mutate('PUT', updates, `/api/admin/communications/banners/${id}`);
+        const result = await mutate('PATCH', updates, `/api/admin/communications/banners/${id}`);
         if (result.success) refetch();
         return result;
     }, [mutate, refetch]);
@@ -207,7 +207,7 @@ export function useCompactAds() {
     }, [mutate, refetch]);
 
     const update = useCallback(async (id: string, updates: Partial<CompactAd>) => {
-        const result = await mutate('PUT', updates, `/api/admin/communications/compact/${id}`);
+        const result = await mutate('PATCH', updates, `/api/admin/communications/compact/${id}`);
         if (result.success) refetch();
         return result;
     }, [mutate, refetch]);

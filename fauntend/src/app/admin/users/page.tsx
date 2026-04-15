@@ -6,6 +6,7 @@ import { Users, Search, ShieldCheck, UserCheck, Edit, Trash2, RefreshCw, Chevron
 import Swal from 'sweetalert2';
 import AdminGuard from '@/components/AdminGuard';
 import { useSpecialReferrals, type SpecialReferral, type CreateReferralData } from '@/hooks/admin';
+import { getAdminHeaders } from '@/hooks/admin/useAdminFetch';
 
 type TabType = 'users' | 'referrals';
 
@@ -109,16 +110,6 @@ function UsersTab() {
     const abortControllerRef = useRef<AbortController | null>(null);
     const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    const getAuthHeaders = useCallback((): Record<string, string> => {
-        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-        // Get admin password from localStorage or prompt
-        const adminPassword = localStorage.getItem('admin_password') || '';
-        if (adminPassword) {
-            headers['Authorization'] = `Bearer ${adminPassword}`;
-        }
-        return headers;
-    }, []);
-
     // Debounced fetchUsers with abort controller
     const fetchUsers = useCallback(async () => {
         // Cancel previous request
@@ -148,7 +139,7 @@ function UsersTab() {
                 });
                 // Use local API route, not backend URL
                 const res = await fetch(`/api/admin/users?${params}`, {
-                    headers: getAuthHeaders(),
+                    headers: getAdminHeaders(),
                     signal: abortControllerRef.current.signal
                 });
                 const json = await res.json();
@@ -166,7 +157,7 @@ function UsersTab() {
                 if (isMountedRef.current) setLoading(false);
             }
         }, 300); // 300ms debounce
-    }, [page, search, roleFilter, statusFilter, getAuthHeaders]);
+    }, [page, search, roleFilter, statusFilter]);
 
     useEffect(() => {
         fetchUsers();

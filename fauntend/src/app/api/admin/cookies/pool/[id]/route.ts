@@ -8,6 +8,21 @@ function verifyAdminPassword(request: NextRequest): boolean {
   return providedPassword === adminPassword;
 }
 
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  if (!verifyAdminPassword(request)) {
+    return NextResponse.json({ error: 'Invalid password' }, { status: 401 });
+  }
+  const { id } = await params;
+  const { searchParams } = new URL(request.url);
+  if (searchParams.has('test')) {
+    return NextResponse.json({ success: true, data: { healthy: true } });
+  }
+  return NextResponse.json({ success: true, data: { id } });
+}
+
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -17,7 +32,7 @@ export async function PATCH(
   }
   const { id } = await params;
   const body = await request.json();
-  return NextResponse.json({ success: true, message: 'User-Agent updated', data: { id, ...body } });
+  return NextResponse.json({ success: true, message: 'Cookie updated', data: { id, ...body } });
 }
 
 export async function DELETE(
@@ -28,5 +43,5 @@ export async function DELETE(
     return NextResponse.json({ error: 'Invalid password' }, { status: 401 });
   }
   const { id } = await params;
-  return NextResponse.json({ success: true, message: `User-Agent ${id} deleted` });
+  return NextResponse.json({ success: true, message: `Cookie ${id} deleted` });
 }

@@ -8,28 +8,25 @@ function verifyAdminPassword(request: NextRequest): boolean {
   return providedPassword === adminPassword;
 }
 
-export async function GET(request: NextRequest) {
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   if (!verifyAdminPassword(request)) {
     return NextResponse.json({ error: 'Invalid password' }, { status: 401 });
   }
-  return NextResponse.json({
-    success: true,
-    data: {
-      size: 0,
-      entries: 0,
-      maxSize: 10485760,
-    },
-  });
+  const { id } = await params;
+  const body = await request.json();
+  return NextResponse.json({ success: true, message: 'Browser profile updated', data: { id, ...body } });
 }
 
-export async function DELETE(request: NextRequest) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   if (!verifyAdminPassword(request)) {
     return NextResponse.json({ error: 'Invalid password' }, { status: 401 });
   }
-  return NextResponse.json({
-    success: true,
-    data: { deleted: 0 },
-    message: 'Cache cleared',
-  });
+  const { id } = await params;
+  return NextResponse.json({ success: true, message: `Browser profile ${id} deleted` });
 }
-

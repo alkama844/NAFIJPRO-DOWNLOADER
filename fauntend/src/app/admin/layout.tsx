@@ -51,7 +51,10 @@ const NAV_ITEMS = {
         { href: '/admin', label: 'Overview', icon: LayoutDashboard },
         { href: '/admin/access', label: 'Access', icon: Key },
         { href: '/admin/api-keys', label: 'API Keys', icon: Shield },
-        { href: '/admin/chat', label: 'Chat API', icon: MessageSquare },
+        // NOTE: Chat API page hidden from navigation (Issue 6.1)
+        // Reason: Page is currently non-functional (all data hardcoded, no backend integration)
+        // TODO: Implement real chat backend or restore link when ready
+        // { href: '/admin/chat', label: 'Chat API', icon: MessageSquare },
     ],
     admin: [
         { href: '/admin/platforms', label: 'Platforms', icon: Globe },

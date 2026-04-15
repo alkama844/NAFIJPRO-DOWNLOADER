@@ -3,7 +3,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { useAdminFetch } from './useAdminFetch';
+import { useAdminFetch, getAdminHeaders } from './useAdminFetch';
 import { API_URL } from '@/lib/config';
 
 export interface BrowserProfile {
@@ -80,35 +80,14 @@ export function useBrowserProfiles() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    // Get auth token from Supabase session
-    const getAuthToken = useCallback((): string | null => {
-        if (typeof window === 'undefined') return null;
-        const supabaseKey = Object.keys(localStorage).find(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
-        if (supabaseKey) {
-            try {
-                const session = JSON.parse(localStorage.getItem(supabaseKey) || '{}');
-                return session?.access_token || null;
-            } catch {
-                return null;
-            }
-        }
-        return null;
-    }, []);
-
-    // Admin fetch helper
+    // Admin fetch helper using secure auth headers
     const adminFetch = useCallback(async (url: string, options: RequestInit = {}) => {
-        const token = getAuthToken();
-        if (!API_URL) throw new Error('API_URL not configured');
-        const fullUrl = url.startsWith('http') ? url : `${API_URL}${url}`;
-        
-        const headers: Record<string, string> = { 
-            'Content-Type': 'application/json',
-            ...(options.headers as Record<string, string> || {})
-        };
-        if (token) headers['Authorization'] = `Bearer ${token}`;
-        
-        return fetch(fullUrl, { ...options, headers });
-    }, [getAuthToken]);
+        // Use local routes, don't prepend API_URL
+        return fetch(url, {
+            ...options,
+            headers: { ...getAdminHeaders(), ...(options.headers as Record<string, string> || {}) }
+        });
+    }, []);
 
     const fetchProfiles = useCallback(async () => {
         setLoading(true);

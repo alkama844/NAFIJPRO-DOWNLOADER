@@ -8,25 +8,27 @@ function verifyAdminPassword(request: NextRequest): boolean {
   return providedPassword === adminPassword;
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  if (!verifyAdminPassword(request)) {
+    return NextResponse.json({ error: 'Invalid password' }, { status: 401 });
+  }
+  const { id } = await params;
+  return NextResponse.json({ success: true, data: { id } });
+}
+
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   if (!verifyAdminPassword(request)) {
     return NextResponse.json({ error: 'Invalid password' }, { status: 401 });
   }
   const { id } = await params;
   const body = await request.json();
-  return NextResponse.json({ success: true, message: 'User-Agent updated', data: { id, ...body } });
+  return NextResponse.json({ success: true, message: `Alert ${id} updated`, data: body });
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   if (!verifyAdminPassword(request)) {
     return NextResponse.json({ error: 'Invalid password' }, { status: 401 });
   }
   const { id } = await params;
-  return NextResponse.json({ success: true, message: `User-Agent ${id} deleted` });
+  return NextResponse.json({ success: true, message: `Alert ${id} deleted` });
 }

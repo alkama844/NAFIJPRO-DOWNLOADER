@@ -12,24 +12,19 @@ export async function GET(request: NextRequest) {
   if (!verifyAdminPassword(request)) {
     return NextResponse.json({ error: 'Invalid password' }, { status: 401 });
   }
+  const { searchParams } = new URL(request.url);
+  const days = searchParams.get('days') || '7';
+
   return NextResponse.json({
     success: true,
     data: {
-      size: 0,
-      entries: 0,
-      maxSize: 10485760,
+      period: `Last ${days} days`,
+      totalRequests: 0,
+      successCount: 0,
+      errorCount: 0,
+      avgResponseTime: 0,
+      topPlatforms: [],
+      topErrors: [],
     },
   });
 }
-
-export async function DELETE(request: NextRequest) {
-  if (!verifyAdminPassword(request)) {
-    return NextResponse.json({ error: 'Invalid password' }, { status: 401 });
-  }
-  return NextResponse.json({
-    success: true,
-    data: { deleted: 0 },
-    message: 'Cache cleared',
-  });
-}
-

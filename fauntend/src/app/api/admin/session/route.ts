@@ -90,3 +90,77 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+/**
+ * DELETE /api/admin/session
+ * Destroy admin session (logout)
+ */
+export async function DELETE(request: NextRequest) {
+  try {
+    const response = NextResponse.json({
+      success: true,
+      message: 'Admin session destroyed',
+    });
+
+    // Clear the session cookie
+    response.cookies.set({
+      name: 'admin_session',
+      value: '',
+      maxAge: 0,
+      path: '/admin',
+    });
+
+    return response;
+  } catch (error) {
+    console.error('[Admin Session] Error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * PATCH /api/admin/session
+ * Refresh admin session
+ */
+export async function PATCH(request: NextRequest) {
+  try {
+    const token = request.cookies.get('admin_session')?.value;
+
+    if (!token) {
+      return NextResponse.json(
+        { error: 'No session to refresh' },
+        { status: 401 }
+      );
+    }
+
+    // Generate new token
+    const newToken = Buffer.from(`admin_${Date.now()}_${Math.random().toString(36).slice(2)}`).toString('base64');
+
+    const response = NextResponse.json({
+      success: true,
+      token: newToken,
+      message: 'Admin session refreshed',
+    });
+
+    // Update session cookie
+    response.cookies.set({
+      name: 'admin_session',
+      value: newToken,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 86400 * 7,
+      path: '/admin',
+    });
+
+    return response;
+  } catch (error) {
+    console.error('[Admin Session] Error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}

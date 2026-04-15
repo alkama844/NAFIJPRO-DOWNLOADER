@@ -42,7 +42,7 @@ const toast = (icon: 'success' | 'error', title: string) => {
 
 export function useApiKeys() {
     const [saving, setSaving] = useState<string | null>(null);
-    const { data, loading, refetch, mutate } = useAdminFetch<ApiKey[]>('/api/admin/apikeys');
+    const { data, loading, refetch, mutate } = useAdminFetch<ApiKey[]>('/api/admin/api-keys');
 
     const createKey = useCallback(async (name: string, options?: CreateKeyOptions): Promise<{ key?: ApiKey; plainKey?: string } | null> => {
         setSaving('create');

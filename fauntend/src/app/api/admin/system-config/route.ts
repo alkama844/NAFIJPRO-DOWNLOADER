@@ -8,19 +8,22 @@ function verifyAdminPassword(request: NextRequest): boolean {
   return providedPassword === adminPassword;
 }
 
+// In-memory state (will be replaced with database)
+let config = {
+  site_name: 'DownAria',
+  site_description: 'Social Media Video Downloader',
+  discord_webhook_url: '',
+  maintenance_details: '',
+  maintenance_estimated_end: '',
+};
+
 export async function GET(request: NextRequest) {
   if (!verifyAdminPassword(request)) {
     return NextResponse.json({ error: 'Invalid password' }, { status: 401 });
   }
   return NextResponse.json({
     success: true,
-    data: {
-      site_name: 'DownAria',
-      site_description: 'Social Media Video Downloader',
-      discord_webhook_url: '',
-      maintenance_details: '',
-      maintenance_estimated_end: '',
-    },
+    data: config,
   });
 }
 
@@ -29,5 +32,30 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid password' }, { status: 401 });
   }
   const body = await request.json();
-  return NextResponse.json({ success: true, message: 'Settings updated', data: body });
+  config = { ...config, ...body };
+  return NextResponse.json({ success: true, message: 'Settings updated', data: config });
 }
+
+export async function PATCH(request: NextRequest) {
+  if (!verifyAdminPassword(request)) {
+    return NextResponse.json({ error: 'Invalid password' }, { status: 401 });
+  }
+  const body = await request.json();
+  config = { ...config, ...body };
+  return NextResponse.json({ success: true, message: 'Settings patched', data: config });
+}
+
+export async function DELETE(request: NextRequest) {
+  if (!verifyAdminPassword(request)) {
+    return NextResponse.json({ error: 'Invalid password' }, { status: 401 });
+  }
+  config = {
+    site_name: 'DownAria',
+    site_description: 'Social Media Video Downloader',
+    discord_webhook_url: '',
+    maintenance_details: '',
+    maintenance_estimated_end: '',
+  };
+  return NextResponse.json({ success: true, message: 'Settings reset to defaults' });
+}
+

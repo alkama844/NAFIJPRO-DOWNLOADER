@@ -15,21 +15,23 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     success: true,
     data: {
-      size: 0,
-      entries: 0,
-      maxSize: 10485760,
+      profiles: [],
+      stats: [],
+      totals: {
+        total: 0,
+        enabled: 0,
+        totalUses: 0,
+        totalSuccess: 0,
+        totalErrors: 0,
+      },
     },
   });
 }
 
-export async function DELETE(request: NextRequest) {
+export async function POST(request: NextRequest) {
   if (!verifyAdminPassword(request)) {
     return NextResponse.json({ error: 'Invalid password' }, { status: 401 });
   }
-  return NextResponse.json({
-    success: true,
-    data: { deleted: 0 },
-    message: 'Cache cleared',
-  });
+  const body = await request.json();
+  return NextResponse.json({ success: true, message: 'Browser profile created', data: body });
 }
-
