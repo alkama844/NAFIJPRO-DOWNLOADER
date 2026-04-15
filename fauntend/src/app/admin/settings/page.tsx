@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-    Settings, Shield, Database, Globe, Save, RefreshCw, Webhook, 
+import {
+    Settings, Shield, Database, Globe, Save, RefreshCw, Webhook,
     ExternalLink, Bell, Lock, AlertTriangle, ChevronDown, Trash2
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import AdminGuard from '@/components/AdminGuard';
 import { useSettings, useAlerts } from '@/hooks/admin';
+import { getAdminHeaders } from '@/hooks/admin/useAdminFetch';
 
 interface GlobalSettings {
     site_name: string;
@@ -161,15 +162,6 @@ function SettingsContent() {
 
     const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-    const getAuthHeaders = (): Record<string, string> => {
-        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-        const adminPassword = localStorage.getItem('admin_password');
-        if (adminPassword) {
-            headers['Authorization'] = `Bearer ${adminPassword}`;
-        }
-        return headers;
-    };
-
     const clearCache = async () => {
         const result = await Swal.fire({
             title: 'Clear Cache?',
@@ -184,7 +176,7 @@ function SettingsContent() {
         if (!result.isConfirmed) return;
 
         try {
-            const res = await fetch(`/api/admin/cache`, { method: 'DELETE', headers: getAuthHeaders() });
+            const res = await fetch(`/api/admin/cache`, { method: 'DELETE', headers: getAdminHeaders() });
             const data = await res.json();
             
             Swal.fire({
@@ -214,9 +206,9 @@ function SettingsContent() {
             color: 'var(--text-primary)',
         });
         if (!result.isConfirmed) return;
-        
+
         try {
-            const res = await fetch(`/api/admin/cookies/migrate`, { method: 'POST', headers: getAuthHeaders() });
+            const res = await fetch(`/api/admin/cookies/migrate`, { method: 'POST', headers: getAdminHeaders() });
             const data = await res.json();
             Swal.fire({
                 toast: true,
