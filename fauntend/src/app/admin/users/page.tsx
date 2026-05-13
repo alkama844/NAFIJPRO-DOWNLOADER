@@ -214,7 +214,7 @@ function UsersTab() {
 
         const res = await fetch(`/api/admin/users`, {
             method: 'POST',
-            headers: getAuthHeaders(),
+            headers: getAdminHeaders(),
             body: JSON.stringify({ action: 'updateStatus', userId: user.id, status: nextStatus })
         });
         if ((await res.json()).success) {
@@ -234,7 +234,7 @@ function UsersTab() {
 
         const res = await fetch(`/api/admin/users`, {
             method: 'POST',
-            headers: getAuthHeaders(),
+            headers: getAdminHeaders(),
             body: JSON.stringify({ action: 'updateRole', userId: selectedUser.id, role: editForm.role })
         });
         const json = await res.json();
@@ -251,7 +251,7 @@ function UsersTab() {
         if (!addForm.email || !addForm.password) return;
         const res = await fetch(`/api/admin/users`, {
             method: 'POST',
-            headers: getAuthHeaders(),
+            headers: getAdminHeaders(),
             body: JSON.stringify({ action: 'createUser', ...addForm })
         });
         const json = await res.json();
@@ -279,7 +279,7 @@ function UsersTab() {
 
         const res = await fetch(`/api/admin/users`, {
             method: 'DELETE',
-            headers: getAuthHeaders(),
+            headers: getAdminHeaders(),
             body: JSON.stringify({ userId: user.id })
         });
         if ((await res.json()).success) {
