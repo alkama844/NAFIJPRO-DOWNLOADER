@@ -64,7 +64,7 @@ export function useSettings() {
         try {
             const result = await mutate('DELETE', undefined, '/api/admin/cache');
             if (result.success) {
-                toast('success', `Cleared ${result.data?.deleted || 0} entries`);
+                toast('success', `Cleared ${(result.data as any)?.deleted || 0} entries`);
                 return true;
             } else {
                 toast('error', result.error || 'Failed to clear');

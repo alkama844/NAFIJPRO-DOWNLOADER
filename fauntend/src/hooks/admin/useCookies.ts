@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { useAdminFetch } from './useAdminFetch';
+import { useAdminFetch, buildAdminUrl, getAdminHeaders } from './useAdminFetch';
 import Swal from 'sweetalert2';
 
 type CookieStatus = 'healthy' | 'cooldown' | 'expired' | 'disabled';

@@ -511,7 +511,7 @@ function ReferralsTab() {
                                             <span className={`px-1.5 py-0.5 rounded ${ref.role === 'admin' ? 'bg-amber-500/20 text-amber-400' : 'bg-blue-500/20 text-blue-400'}`}>
                                                 {ref.role}
                                             </span>
-                                            {ref.note && <span>• {ref.note}</span>}
+                                            {ref.Note && <span>• {ref.Note}</span>}
                                         </div>
                                     </div>
                                 </div>
