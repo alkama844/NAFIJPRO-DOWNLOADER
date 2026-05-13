@@ -3,7 +3,7 @@
  * Returns platform status and maintenance mode info
  */
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'https://nafijpro-downloader.onrender.com';
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'https://nafijpro-downloader-s3rj.onrender.com';
 
 interface PlatformStatus {
   id: string;

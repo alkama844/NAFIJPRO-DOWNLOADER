@@ -35,8 +35,8 @@ Create `fauntend/.env.local` with:
 ```env
 # From .env.example
 NEXT_PUBLIC_BASE_URL=https://downloader-nafijrahaman.vercel.app
-NEXT_PUBLIC_API_URL=https://nafijpro-downloader.onrender.com
-BACKEND_URL=https://nafijpro-downloader.onrender.com
+NEXT_PUBLIC_API_URL=https://nafijpro-downloader-s3rj.onrender.com
+BACKEND_URL=https://nafijpro-downloader-s3rj.onrender.com
 WEB_INTERNAL_SHARED_SECRET=nafijrahaman_7f3c9d8a4b2e6f1a9c0d5e8b7a3f2c1d
 
 # Add these two (from Supabase)

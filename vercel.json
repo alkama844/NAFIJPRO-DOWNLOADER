@@ -16,12 +16,12 @@
   "env": [
     {
       "key": "NEXT_PUBLIC_API_URL",
-      "value": "https://nafijpro-downloader.onrender.com",
+      "value": "https://nafijpro-downloader-s3rj.onrender.com",
       "type": "system"
     },
     {
       "key": "BACKEND_URL",
-      "value": "https://nafijpro-downloader.onrender.com",
+      "value": "https://nafijpro-downloader-s3rj.onrender.com",
       "type": "system"
     },
     {

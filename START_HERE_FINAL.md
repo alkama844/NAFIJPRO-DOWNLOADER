@@ -160,12 +160,12 @@ GROQ_API_KEY="gsk_YOUR_KEY_HERE"
 PORT=8080
 ALLOWED_ORIGINS=https://downloader-nafijrahaman.vercel.app,https://nafijthepro-downloader.vercel.app,https://downloader.nafij.me,https://downloader.nafijrahaman.me
 WEB_INTERNAL_SHARED_SECRET=nafijrahaman_7f3c9d8a4b2e6f1a9c0d5e8b7a3f2c1d
-PUBLIC_BASE_URL=https://nafijpro-downloader.onrender.com
+PUBLIC_BASE_URL=https://nafijpro-downloader-s3rj.onrender.com
 ```
 
 ### Frontend `.env.local`:
 ```bash
-NEXT_PUBLIC_API_URL=https://nafijpro-downloader.onrender.com
+NEXT_PUBLIC_API_URL=https://nafijpro-downloader-s3rj.onrender.com
 NEXT_PUBLIC_BASE_URL=https://downloader.nafij.me
 ```
 

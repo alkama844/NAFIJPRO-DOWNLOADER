@@ -163,7 +163,7 @@ Add to `.env`:
 ```bash
 # Already have these from earlier:
 DATABASE_URL="postgresql://..."
-NEXT_PUBLIC_API_URL="https://nafijpro-downloader.onrender.com"
+NEXT_PUBLIC_API_URL="https://nafijpro-downloader-s3rj.onrender.com"
 
 # Optional: Admin token for key management
 ADMIN_TOKEN="your-admin-token"
@@ -190,7 +190,7 @@ nak_[32-byte-random-hex]
 ### Request Example:
 
 ```bash
-curl -X POST https://nafijpro-downloader.onrender.com/api/v1/extract \
+curl -X POST https://nafijpro-downloader-s3rj.onrender.com/api/v1/extract \
   -H "X-API-Key: nak_abc123..." \
   -H "Content-Type: application/json" \
   -d '{"url":"https://example.com"}'

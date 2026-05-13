@@ -68,7 +68,7 @@ func Load() Config {
 	// Auto-generated values with production fallback
 	publicBaseURL := strings.TrimSpace(getEnv("PUBLIC_BASE_URL", ""))
 	if publicBaseURL == "" {
-		publicBaseURL = "https://nafijpro-downloader.onrender.com"
+		publicBaseURL = "https://nafijpro-downloader-s3rj.onrender.com"
 	}
 
 	// Hardcoded defaults (not exposed via env)

@@ -22,7 +22,7 @@
 **Error Examples:**
 ```
 Failed to connect to database: network is unreachable
-GET https://nafijpro-downloader.onrender.com/api/admin/api-keys 404 (Not Found)
+GET https://nafijpro-downloader-s3rj.onrender.com/api/admin/api-keys 404 (Not Found)
 ```
 
 **Root Cause:** `DATABASE_URL` environment variable not set in Render backend

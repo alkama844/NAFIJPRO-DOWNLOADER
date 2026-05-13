@@ -13,10 +13,10 @@
  */
 
 // API_URL: Use hardcoded production URL as fallback to ensure connection
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://nafijpro-downloader.onrender.com';
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://nafijpro-downloader-s3rj.onrender.com';
 
 if (!process.env.NEXT_PUBLIC_API_URL && typeof window !== 'undefined') {
-    console.info('[config] NEXT_PUBLIC_API_URL not set — using hardcoded fallback: https://nafijpro-downloader.onrender.com');
+    console.info('[config] NEXT_PUBLIC_API_URL not set — using hardcoded fallback: https://nafijpro-downloader-s3rj.onrender.com');
 }
 
 // Supabase Configuration
@@ -29,7 +29,7 @@ export const APP_VERSION = '1.9.0';
 
 // Production URLs (used by SEO / structured data)
 export const PRODUCTION_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://downloader.nafij.me';
-export const RENDER_API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://nafijpro-downloader.onrender.com';
+export const RENDER_API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://nafijpro-downloader-s3rj.onrender.com';
 
 // Feature Flags
 export const FEATURES = {

@@ -261,7 +261,7 @@ export default function APIKeysPage() {
         <h3 className="font-bold mb-2">📌 How to Use:</h3>
         <p className="text-sm mb-3">Add your API key to the header when making requests:</p>
         <div className="bg-blue-100 p-3 rounded font-mono text-sm overflow-x-auto">
-          <code>{`curl -X POST https://nafijpro-downloader.onrender.com/api/v1/extract \
+          <code>{`curl -X POST https://nafijpro-downloader-s3rj.onrender.com/api/v1/extract \
   -H "X-API-Key: nak_YOUR_KEY_HERE" \
   -H "Content-Type: application/json" \
   -d '{"url":"https://example.com"}'`}</code>

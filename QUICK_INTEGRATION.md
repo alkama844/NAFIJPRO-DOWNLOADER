@@ -47,7 +47,7 @@ PORT="8080"
 
 ### Frontend (`.env.local`)
 ```bash
-NEXT_PUBLIC_API_URL="https://nafijpro-downloader.onrender.com"
+NEXT_PUBLIC_API_URL="https://nafijpro-downloader-s3rj.onrender.com"
 ```
 
 ---

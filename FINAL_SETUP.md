@@ -229,9 +229,9 @@ HMAC_SECRET="your-hmac-secret"
 
 # Existing settings (keep these)
 ALLOWED_ORIGINS=https://downloader-nafijrahaman.vercel.app,https://nafijthepro-downloader.vercel.app,https://downloader.nafij.me,https://downloader.nafijrahaman.me
-BACKEND_URL=https://nafijpro-downloader.onrender.com
+BACKEND_URL=https://nafijpro-downloader-s3rj.onrender.com
 PORT=10000
-PUBLIC_BASE_URL=https://nafijpro-downloader.onrender.com
+PUBLIC_BASE_URL=https://nafijpro-downloader-s3rj.onrender.com
 SUPABASE_SERVICE_ROLE_KEY=eyJhbGc...
 WEB_INTERNAL_SHARED_SECRET=nafijrahaman_7f3c9d8a4b2e6f1a9c0d5e8b7a3f2c1d
 UPSTREAM_TIMEOUT_MS=10000
@@ -239,7 +239,7 @@ UPSTREAM_TIMEOUT_MS=10000
 
 ### Frontend (.env.local):
 ```bash
-NEXT_PUBLIC_API_URL=https://nafijpro-downloader.onrender.com
+NEXT_PUBLIC_API_URL=https://nafijpro-downloader-s3rj.onrender.com
 NEXT_PUBLIC_BASE_URL=https://downloader.nafij.me
 ```
 

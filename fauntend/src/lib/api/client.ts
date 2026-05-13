@@ -10,7 +10,7 @@
  */
 
 // Backend API URL - hardcoded production URL as fallback
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://nafijpro-downloader.onrender.com';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://nafijpro-downloader-s3rj.onrender.com';
 if (!API_URL && typeof window !== 'undefined') {
     console.error('CRITICAL: NEXT_PUBLIC_API_URL environment variable is not set. Using hardcoded fallback.');
 }
