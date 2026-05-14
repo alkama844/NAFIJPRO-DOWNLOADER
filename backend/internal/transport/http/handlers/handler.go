@@ -171,7 +171,25 @@ func upstreamTransportTimeout(value, fallback time.Duration) time.Duration {
 func (h *Handler) SetDatabase(db *sql.DB) {
 	h.db = db
 
-	// Load public admin cookies into the extractor's server cookie lanes so they are available
+	// ADMIN COOKIE LOADING STRATEGY:
+	// =============================
+	// This handler implements a two-path fallback mechanism for admin cookies:
+	//
+	// Path 1 (Per-Request Query):
+	//   - Every Extract request queries the database for matching admin cookies
+	//   - This is the PRIMARY mechanism (see extract.go handler)
+	//   - It ensures newly added cookies are immediately available
+	//   - Platform is inferred from the URL hostname
+	//
+	// Path 2 (Startup Cache - LEGACY):
+	//   - Admin cookies are cached in the extraction service at startup
+	//   - This provides fast fallback if DB is unavailable during request
+	//   - Only PUBLIC cookies are cached (for security)
+	//   - Note: Cookies added after startup won't appear in cache until restart
+	//
+	// The extraction service's resolveServerCookie() is called AFTER
+	// the per-request DB query fails, providing graceful degradation.
+
 	if h.db != nil && h.extractor != nil {
 		rows, err := h.db.Query(`
 			SELECT platform, value FROM admin_cookies

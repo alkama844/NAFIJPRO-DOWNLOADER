@@ -7,7 +7,7 @@ import { SidebarLayout } from '@/components/Sidebar';
 import { Button } from '@/components/ui/Button';
 import { ThemeType, getTheme, saveTheme, getResolvedTheme, getTimeBasedTheme, savePlatformCookie, clearPlatformCookie, getAllCookieStatus, getSkipCache, setSkipCache, clearHistory, clearAllCache, getHistoryCount, downloadFullBackupAsZip, importFullBackupFromZip, getLanguagePreference, setLanguagePreference, getUnifiedSettings, saveUnifiedSettings, type LanguagePreference, type DownAriaSettings, resetSeasonalSettings, deleteBackgroundBlob, getSeasonalSettings, setBackgroundOpacity, setBackgroundBlur, clearAllClientCache, getCacheStats, type CacheStats } from '@/lib/storage';
 import { isPushSupported, getPermissionStatus, subscribeToPush, unsubscribeFromPush, isSubscribed } from '@/lib/utils/push-notifications';
-import { FacebookIcon, WeiboIcon, InstagramIcon, XTwitterIcon } from '@/components/ui/Icons';
+import { FacebookIcon, WeiboIcon, InstagramIcon, XTwitterIcon, YoutubeIcon } from '@/components/ui/Icons';
 import Swal from 'sweetalert2';
 import AnnouncementBanner from '@/components/AnnouncementBanner';
 import { DiscordWebhookSettings } from '@/components/DiscordWebhookSettings';
@@ -24,7 +24,7 @@ import { getUserDiscordSettings } from '@/lib/utils/discord-webhook';
 // ═══════════════════════════════════════════════════════════════
 
 type TabId = 'basic' | 'cookies' | 'storage' | 'integrations';
-type CookiePlatform = 'facebook' | 'instagram' | 'twitter' | 'weibo';
+type CookiePlatform = 'facebook' | 'instagram' | 'twitter' | 'weibo' | 'youtube';
 
 // PWA install prompt event type
 interface BeforeInstallPromptEvent extends Event {
@@ -50,7 +50,8 @@ const PLATFORMS = [
     { id: 'facebook' as const, icon: FacebookIcon, name: 'Facebook', desc: 'Stories & groups', color: 'text-blue-500' },
     { id: 'instagram' as const, icon: InstagramIcon, name: 'Instagram', desc: 'Private posts', color: 'text-pink-500' },
     { id: 'twitter' as const, icon: XTwitterIcon, name: 'Twitter/X', desc: 'Age-restricted', color: 'text-sky-400' },
-    { id: 'weibo' as const, icon: WeiboIcon, name: 'Weibo', desc: 'Required', color: 'text-red-500' },
+    { id: 'youtube' as const, icon: YoutubeIcon, name: 'YouTube', desc: 'Age-restricted/Shorts', color: 'text-red-500' },
+    { id: 'weibo' as const, icon: WeiboIcon, name: 'Weibo', desc: 'Required', color: 'text-orange-500' },
 ];
 
 // ═══════════════════════════════════════════════════════════════
@@ -66,7 +67,7 @@ export default function SettingsPage() {
     const tCommon = useTranslations('common');
 
     // Cookie states
-    const [userCookies, setUserCookies] = useState<Record<CookiePlatform, boolean>>({ facebook: false, instagram: false, weibo: false, twitter: false });
+    const [userCookies, setUserCookies] = useState<Record<CookiePlatform, boolean>>({ facebook: false, instagram: false, weibo: false, twitter: false, youtube: false });
     const [adminCookies, setAdminCookies] = useState<Record<string, boolean>>({});
     const [editPlatform, setEditPlatform] = useState<CookiePlatform | null>(null);
     const [editValue, setEditValue] = useState('');
@@ -234,9 +235,9 @@ export default function SettingsPage() {
         if (result.isConfirmed) {
             setIsClearing('cookies');
             try {
-                const cookieKeys = ['downaria_fb_cookie', 'downaria_ig_cookie', 'downaria_weibo_cookie', 'downaria_cookies'];
+                const cookieKeys = ['downaria_fb_cookie', 'downaria_ig_cookie', 'downaria_weibo_cookie', 'downaria_yt_cookie', 'downaria_cookies'];
                 cookieKeys.forEach(key => localStorage.removeItem(key));
-                setUserCookies({ facebook: false, instagram: false, weibo: false, twitter: false });
+                setUserCookies({ facebook: false, instagram: false, weibo: false, twitter: false, youtube: false });
                 await Swal.fire({ icon: 'success', title: 'Cookies Cleared', timer: 1500, showConfirmButton: false, background: 'var(--bg-card)', color: 'var(--text-primary)' });
             } finally {
                 setIsClearing(null);
@@ -538,7 +539,7 @@ export default function SettingsPage() {
                                 <div className="min-w-0">
                                     <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wide">{t('tabs.cookies')}</p>
                                     <p className="text-sm font-medium truncate">
-                                        {Object.values(userCookies).filter(Boolean).length}/4 configured
+                                        {Object.values(userCookies).filter(Boolean).length}/5 configured
                                     </p>
                                 </div>
                             </div>
@@ -856,11 +857,15 @@ export default function SettingsPage() {
                                         </div>
 
                                         <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20 text-xs">
-                                            <div className="flex items-center gap-2 text-blue-400 font-medium mb-1">
+                                            <div className="flex items-center gap-2 text-blue-400 font-medium mb-2">
                                                 <Shield className="w-3.5 h-3.5" />
-                                                Priority: Your cookie → Admin cookie → Guest mode
+                                                Priority Order
                                             </div>
-                                            <p className="text-[var(--text-secondary)]">Admin cookies are pre-configured for most platforms.</p>
+                                            <ol className="text-[var(--text-secondary)] space-y-1 list-decimal list-inside">
+                                                <li>Your personal cookie (if provided)</li>
+                                                <li>Admin/Server cookie (from database)</li>
+                                                <li>Guest mode (no cookies)</li>
+                                            </ol>
                                         </div>
 
                                         <div className="space-y-2">

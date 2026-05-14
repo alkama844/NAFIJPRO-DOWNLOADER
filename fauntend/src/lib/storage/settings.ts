@@ -31,7 +31,7 @@ export const STORAGE_KEYS = {
 export type ThemeType = 'auto' | 'light' | 'solarized' | 'dark';
 export type ResolvedTheme = 'light' | 'solarized' | 'dark';
 export type LanguagePreference = 'auto' | Locale;
-export type CookiePlatform = 'facebook' | 'instagram' | 'twitter' | 'weibo';
+export type CookiePlatform = 'facebook' | 'instagram' | 'twitter' | 'weibo' | 'youtube';
 
 export interface DiscordSettings {
   webhookUrl: string;

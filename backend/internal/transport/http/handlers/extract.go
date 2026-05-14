@@ -109,6 +109,13 @@ func (h *Handler) Extract(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
+		// Log platform inference for debugging
+		logger.Debug("Admin cookie lookup",
+			"url", req.URL,
+			"inferred_platform", platform,
+		)
+
+		// PRIORITY FALLBACK LOGIC:
 		// 1) Try public admin cookie (usable by anyone)
 		var publicVal sql.NullString
 		pubErr := h.db.QueryRow(`
@@ -122,6 +129,10 @@ func (h *Handler) Extract(w http.ResponseWriter, r *http.Request) {
 			_, _ = h.db.Exec(`UPDATE admin_cookies SET last_used_at = NOW() WHERE value = $1`, publicVal.String)
 			// mark that the cookie used was from server
 			builder.WithCookieSource(cookieSourceLabel("server"))
+			logger.Debug("Applied public admin cookie",
+				"platform", platform,
+				"cookie_length", len(req.Cookie),
+			)
 		} else if apiKeyHeader != "" {
 			// 2) If API key present, try private cookie
 			var privateVal sql.NullString
@@ -136,6 +147,11 @@ func (h *Handler) Extract(w http.ResponseWriter, r *http.Request) {
 				_, _ = h.db.Exec(`UPDATE admin_cookies SET last_used_at = NOW() WHERE value = $1`, privateVal.String)
 				// mark that the cookie used was from server (private)
 				builder.WithCookieSource(cookieSourceLabel("server"))
+				logger.Debug("Applied private admin cookie",
+					"platform", platform,
+					"cookie_length", len(req.Cookie),
+					"api_key_present", true,
+				)
 			}
 		}
 	}
