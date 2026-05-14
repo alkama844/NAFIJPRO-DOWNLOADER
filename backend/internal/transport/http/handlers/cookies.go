@@ -17,15 +17,17 @@ func NewCookieHandler(db *sql.DB) *CookieHandler {
 }
 
 type CookieResponse struct {
-	ID        string     `json:"id"`
-	Name      string     `json:"name"`
-	Value     string     `json:"value,omitempty"` // Never send full value to frontend
-	Preview   string     `json:"preview"`         // First 20 chars + ...
-	Tier      string     `json:"tier"`            // "premium" or "normal"
-	Enabled   bool       `json:"enabled"`
-	CreatedAt time.Time  `json:"createdAt"`
-	LastUsed  *time.Time `json:"lastUsed,omitempty"`
-	ExpiresAt *time.Time `json:"expiresAt,omitempty"`
+	ID         string     `json:"id"`
+	Name       string     `json:"name"`
+	Value      string     `json:"value,omitempty"` // Never send full value to frontend
+	Preview    string     `json:"preview"`         // First 20 chars + ...
+	Tier       string     `json:"tier"`            // "premium" or "normal"
+	Platform   string     `json:"platform"`        // youtube, facebook, instagram, etc.
+	Visibility string     `json:"visibility"`      // "public" or "private"
+	Enabled    bool       `json:"enabled"`
+	CreatedAt  time.Time  `json:"createdAt"`
+	LastUsed   *time.Time `json:"lastUsed,omitempty"`
+	ExpiresAt  *time.Time `json:"expiresAt,omitempty"`
 }
 
 // ListCookies returns all cookies with their tier status
@@ -36,7 +38,7 @@ func (h *CookieHandler) ListCookies(w http.ResponseWriter, r *http.Request) {
 	}
 
 	rows, err := h.db.Query(`
-		SELECT id, name, SUBSTR(value, 1, 20), tier, enabled, created_at, last_used_at, expire_at
+		SELECT id, name, SUBSTR(value, 1, 20), tier, platform, visibility, enabled, created_at, last_used_at, expire_at
 		FROM admin_cookies
 		WHERE deleted_at IS NULL
 		ORDER BY created_at DESC
@@ -51,22 +53,24 @@ func (h *CookieHandler) ListCookies(w http.ResponseWriter, r *http.Request) {
 
 	var cookies []CookieResponse
 	for rows.Next() {
-		var id, name, preview, tier string
+		var id, name, preview, tier, platform, visibility string
 		var enabled bool
 		var createdAt sql.NullTime
 		var lastUsed, expiresAt sql.NullTime
 
-		if err := rows.Scan(&id, &name, &preview, &tier, &enabled, &createdAt, &lastUsed, &expiresAt); err != nil {
+		if err := rows.Scan(&id, &name, &preview, &tier, &platform, &visibility, &enabled, &createdAt, &lastUsed, &expiresAt); err != nil {
 			continue
 		}
 
 		cookie := CookieResponse{
-			ID:        id,
-			Name:      name,
-			Preview:   preview + "...",
-			Tier:      tier, // "premium" or "normal"
-			Enabled:   enabled,
-			CreatedAt: createdAt.Time,
+			ID:         id,
+			Name:       name,
+			Preview:    preview + "...",
+			Tier:       tier,
+			Platform:   platform,
+			Visibility: visibility,
+			Enabled:    enabled,
+			CreatedAt:  createdAt.Time,
 		}
 
 		if lastUsed.Valid {
@@ -95,10 +99,12 @@ func (h *CookieHandler) CreateCookie(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req struct {
-		Name      string     `json:"name"`
-		Value     string     `json:"value"`
-		Tier      string     `json:"tier"` // "premium" or "normal"
-		ExpiresAt *time.Time `json:"expiresAt"`
+		Name       string     `json:"name"`
+		Value      string     `json:"value"`
+		Tier       string     `json:"tier"`       // "premium" or "normal"
+		Platform   string     `json:"platform"`   // youtube, facebook, instagram, etc.
+		Visibility string     `json:"visibility"` // "public" or "private"
+		ExpiresAt  *time.Time `json:"expiresAt"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -113,7 +119,17 @@ func (h *CookieHandler) CreateCookie(w http.ResponseWriter, r *http.Request) {
 
 	// Validate tier
 	if req.Tier != "premium" && req.Tier != "normal" {
-		req.Tier = "normal" // Default to normal
+		req.Tier = "normal"
+	}
+
+	// Validate platform
+	if req.Platform == "" {
+		req.Platform = "youtube"
+	}
+
+	// Validate visibility
+	if req.Visibility != "public" && req.Visibility != "private" {
+		req.Visibility = "public"
 	}
 
 	preview := req.Value
@@ -123,10 +139,10 @@ func (h *CookieHandler) CreateCookie(w http.ResponseWriter, r *http.Request) {
 
 	var cookieID string
 	err := h.db.QueryRow(`
-		INSERT INTO admin_cookies (name, value, tier, enabled, expire_at)
-		VALUES ($1, $2, $3, true, $4)
+		INSERT INTO admin_cookies (name, value, tier, platform, visibility, enabled, expire_at)
+		VALUES ($1, $2, $3, $4, $5, true, $6)
 		RETURNING id
-	`, req.Name, req.Value, req.Tier, req.ExpiresAt).Scan(&cookieID)
+	`, req.Name, req.Value, req.Tier, req.Platform, req.Visibility, req.ExpiresAt).Scan(&cookieID)
 
 	if err != nil {
 		fmt.Printf("Failed to create cookie: %v\n", err)
@@ -135,13 +151,15 @@ func (h *CookieHandler) CreateCookie(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := CookieResponse{
-		ID:        cookieID,
-		Name:      req.Name,
-		Preview:   preview + "...",
-		Tier:      req.Tier,
-		Enabled:   true,
-		CreatedAt: time.Now(),
-		ExpiresAt: req.ExpiresAt,
+		ID:         cookieID,
+		Name:       req.Name,
+		Preview:    preview + "...",
+		Tier:       req.Tier,
+		Platform:   req.Platform,
+		Visibility: req.Visibility,
+		Enabled:    true,
+		CreatedAt:  time.Now(),
+		ExpiresAt:  req.ExpiresAt,
 	}
 
 	CreatedResponse(w, resp)

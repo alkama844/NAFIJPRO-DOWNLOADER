@@ -11,13 +11,13 @@ type CookiePriority struct {
 }
 
 type CookieData struct {
-	ID        string
-	Value     string
-	Name      string
+	ID         string
+	Value      string
+	Name       string
 	Visibility string // "public" or "private"
-	Enabled   bool
-	ExpiresAt *time.Time
-	Platform  string // "youtube", "facebook", "instagram", etc.
+	Enabled    bool
+	ExpiresAt  *time.Time
+	Platform   string // "youtube", "facebook", "instagram", etc.
 }
 
 type CookieResolutionResult struct {

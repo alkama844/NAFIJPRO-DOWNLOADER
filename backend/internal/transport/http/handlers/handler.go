@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"net/http"
+	"strings"
 	"time"
 
 	"downaria-api/internal/app/services/extraction"
@@ -169,6 +170,34 @@ func upstreamTransportTimeout(value, fallback time.Duration) time.Duration {
 
 func (h *Handler) SetDatabase(db *sql.DB) {
 	h.db = db
+
+	// Load public admin cookies into the extractor's server cookie lanes so they are available
+	if h.db != nil && h.extractor != nil {
+		rows, err := h.db.Query(`
+			SELECT platform, value FROM admin_cookies
+			WHERE deleted_at IS NULL AND enabled = TRUE AND visibility = 'public' AND (expire_at IS NULL OR expire_at > NOW())
+		`)
+		if err == nil {
+			defer rows.Close()
+			serverCookies := map[string]string{}
+			for rows.Next() {
+				var platform, value string
+				if err := rows.Scan(&platform, &value); err != nil {
+					continue
+				}
+				if platform != "" && value != "" {
+					serverCookies[strings.ToLower(strings.TrimSpace(platform))] = strings.TrimSpace(value)
+				}
+			}
+			// Recreate extractor service with server cookies configured
+			// Keep defaults: timeout 30, and use existing extractor registry
+			reg := registry.NewRegistry()
+			extractors.RegisterDefaultExtractors(reg)
+			baseExtractor := extraction.NewService(reg, 30, h.config.ExtractionMaxRetries, h.config.ExtractionRetryDelayMs, extraction.WithServerCookies(serverCookies))
+			cachedExtractor := extraction.NewCachedService(baseExtractor, cache.NewPlatformTTLConfig(h.config.CacheExtractionTTL, h.config.CacheExtractionPlatformTTLs))
+			h.extractor = cachedExtractor
+		}
+	}
 }
 
 func (h *Handler) Close() error {

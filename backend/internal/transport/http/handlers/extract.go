@@ -2,10 +2,12 @@ package handlers
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -59,6 +61,21 @@ func (h *Handler) Extract(w http.ResponseWriter, r *http.Request) {
 	}
 	req.URL = validatedURL
 
+	// Infer platform from URL for stats tracking (youtube, facebook, etc.)
+	platform := "generic"
+	if parsedP, errp := url.Parse(strings.TrimSpace(req.URL)); errp == nil {
+		host := strings.ToLower(strings.TrimSpace(parsedP.Hostname()))
+		if host != "" {
+			host = strings.TrimPrefix(host, "www.")
+			parts := strings.Split(host, ".")
+			if len(parts) >= 2 {
+				platform = parts[len(parts)-2]
+			} else {
+				platform = host
+			}
+		}
+	}
+
 	builder.WithCookieSource(cookieSourceLabel(strings.TrimSpace(req.Cookie)))
 
 	// Create a context with timeout for the extract operation
@@ -66,6 +83,38 @@ func (h *Handler) Extract(w http.ResponseWriter, r *http.Request) {
 	extractTimeoutSeconds := time.Duration(h.config.ExtractionTimeoutSeconds) * time.Second
 	ctx, cancel := context.WithTimeout(r.Context(), extractTimeoutSeconds)
 	defer cancel()
+
+	// If request carries an admin API key and the client did not provide a cookie,
+	// attempt to inject a server-side private cookie for the platform.
+	apiKeyHeader := r.Header.Get("X-API-Key")
+	if apiKeyHeader != "" && strings.TrimSpace(req.Cookie) == "" && h.db != nil {
+		// Find a private cookie for this platform
+		platform := "generic"
+		if parsed, errp := url.Parse(strings.TrimSpace(req.URL)); errp == nil {
+			host := strings.ToLower(strings.TrimSpace(parsed.Hostname()))
+			if host != "" {
+				host = strings.TrimPrefix(host, "www.")
+				parts := strings.Split(host, ".")
+				if len(parts) >= 2 {
+					platform = parts[len(parts)-2]
+				} else {
+					platform = host
+				}
+			}
+		}
+		var cookieVal sql.NullString
+		errQuery := h.db.QueryRow(`
+			SELECT value FROM admin_cookies
+			WHERE visibility = 'private' AND enabled = TRUE AND deleted_at IS NULL AND (expire_at IS NULL OR expire_at > NOW()) AND platform = $1
+			ORDER BY last_used_at NULLS FIRST, created_at DESC
+			LIMIT 1
+		`, platform).Scan(&cookieVal)
+		if errQuery == nil && cookieVal.Valid && cookieVal.String != "" {
+			req.Cookie = cookieVal.String
+			// Update last_used_at for auditing
+			_, _ = h.db.Exec(`UPDATE admin_cookies SET last_used_at = NOW() WHERE value = $1`, cookieVal.String)
+		}
+	}
 
 	result, err := h.extractor.Extract(ctx, extraction.ExtractInput{
 		URL:    req.URL,
@@ -78,6 +127,15 @@ func (h *Handler) Extract(w http.ResponseWriter, r *http.Request) {
 			"error", err.Error(),
 			"error_type", fmt.Sprintf("%T", err),
 		)
+		// Persist failure to DB if available
+		if h.db != nil {
+			_, _ = h.db.Exec(`INSERT INTO failed_downloads_log (url, platform, error_message, cookie_attempted, cookie_source, created_at) VALUES ($1,$2,$3,$4,$5,NOW())`, req.URL, platform, err.Error(), req.Cookie != "", cookieSourceLabel(strings.TrimSpace(req.Cookie)))
+			// Update platform_stats counters
+			_, _ = h.db.Exec(`
+				UPDATE platform_stats SET failed_downloads = failed_downloads + 1, total_downloads = total_downloads + 1, last_updated = NOW()
+				WHERE platform = $1
+			`, platform)
+		}
 		status, code, message, category, metadata, retryAfter := h.mapExtractError(err)
 		if retryAfter > 0 {
 			w.Header().Set("Retry-After", strconv.Itoa(retryAfter))
@@ -90,6 +148,11 @@ func (h *Handler) Extract(w http.ResponseWriter, r *http.Request) {
 	h.ensureVariantFilenames(result)
 
 	h.statsStore.RecordExtraction(time.Now().UTC())
+	// Persist success to DB and update platform statistics
+	if h.db != nil {
+		_, _ = h.db.Exec(`INSERT INTO download_stats (platform, status, url, cookie_source, api_key_id, user_agent, ip_address, duration_ms, file_size_bytes, created_at) VALUES ($1,$2,$3,$4,NULL,NULL,NULL,NULL,NULL,NOW())`, result.Platform, "success", req.URL, cookieSourceLabel(strings.TrimSpace(req.Cookie)))
+		_, _ = h.db.Exec(`UPDATE platform_stats SET successful_downloads = successful_downloads + 1, total_downloads = total_downloads + 1, last_updated = NOW() WHERE platform = $1`, result.Platform)
+	}
 	builder.WithCookieSource(cookieSourceLabel(string(result.Authentication.Source)))
 	if result.Authentication.Used {
 		builder.WithAccessMode("private").WithPublicContent(false)
@@ -101,11 +164,11 @@ func (h *Handler) Extract(w http.ResponseWriter, r *http.Request) {
 func cookieSourceLabel(source string) string {
 	switch source {
 	case "client":
-		return "userProvided"
+		return "user"
 	case "server":
 		return "server"
 	default:
-		return "guest"
+		return "none"
 	}
 }
 

@@ -104,9 +104,22 @@ func RunYtDlpDumpWithCookies(ctx context.Context, targetURL, cookieFile string, 
 
 	args := []string{"--dump-json", "--no-download", "--no-warnings", "--no-playlist", "--js-runtimes", "node"}
 
-	// Add cookie file if provided
-	if cookieFile != "" {
-		args = append(args, "--cookies", cookieFile)
+	// Force Android emulation for yt-dlp to bypass host blocks
+	args = append(args, "--player-client", "android")
+	args = append(args, "--user-agent", "Mozilla/5.0 (Linux; Android 12; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36")
+
+	// Cookie handling: cookieFile can be a filesystem path or a raw cookie string (name=value; name2=value2)
+	if strings.TrimSpace(cookieFile) != "" {
+		// If it looks like a path, pass directly as --cookies
+		if strings.HasPrefix(cookieFile, "/") || strings.HasPrefix(cookieFile, "./") || strings.HasPrefix(cookieFile, "file:") {
+			args = append(args, "--cookies", cookieFile)
+		} else if strings.Contains(cookieFile, "=") {
+			// Pass cookie as header; yt-dlp will send as Cookie header
+			args = append(args, "--add-header", fmt.Sprintf("Cookie: %s", cookieFile))
+		} else {
+			// Fallback: treat as file path
+			args = append(args, "--cookies", cookieFile)
+		}
 	}
 
 	args = append(args, extraArgs...)
@@ -183,13 +196,23 @@ func RunYtDlpGetURLsWithCookies(ctx context.Context, targetURL, formatSelector, 
 	}
 
 	args := []string{"-g", "--no-warnings", "--no-playlist", "--js-runtimes", "node"}
+
+	// Android emulation and Android UA
+	args = append(args, "--player-client", "android")
+	args = append(args, "--user-agent", "Mozilla/5.0 (Linux; Android 12; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36")
 	if strings.TrimSpace(formatSelector) != "" {
 		args = append(args, "-f", strings.TrimSpace(formatSelector))
 	}
 
-	// Add cookie file if provided
-	if cookieFile != "" {
-		args = append(args, "--cookies", cookieFile)
+	// Cookie handling: allow either path or raw cookie string
+	if strings.TrimSpace(cookieFile) != "" {
+		if strings.HasPrefix(cookieFile, "/") || strings.HasPrefix(cookieFile, "./") || strings.HasPrefix(cookieFile, "file:") {
+			args = append(args, "--cookies", cookieFile)
+		} else if strings.Contains(cookieFile, "=") {
+			args = append(args, "--add-header", fmt.Sprintf("Cookie: %s", cookieFile))
+		} else {
+			args = append(args, "--cookies", cookieFile)
+		}
 	}
 
 	args = append(args, extraArgs...)

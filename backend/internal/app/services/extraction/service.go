@@ -123,7 +123,16 @@ func (s *extractionService) Extract(ctx context.Context, input ExtractInput) (*c
 		Source:  core.AuthSourceNone,
 	}
 
+	// Priority fuse: user cookie first, then admin/server cookies, then fallback/no-cookie
 	lanes := []core.ExtractOptions{baseOpts}
+
+	if userCookie != "" {
+		lane := baseOpts
+		lane.Cookie = userCookie
+		lane.Source = core.AuthSourceClient
+		lanes = append(lanes, lane)
+	}
+
 	if allowServerCookie {
 		if serverCookie := s.resolveServerCookie(platform); serverCookie != "" {
 			lane := baseOpts
@@ -131,12 +140,6 @@ func (s *extractionService) Extract(ctx context.Context, input ExtractInput) (*c
 			lane.Source = core.AuthSourceServer
 			lanes = append(lanes, lane)
 		}
-	}
-	if userCookie != "" {
-		lane := baseOpts
-		lane.Cookie = userCookie
-		lane.Source = core.AuthSourceClient
-		lanes = append(lanes, lane)
 	}
 
 	var lastErr error
