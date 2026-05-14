@@ -52,26 +52,27 @@ func (v *APIKeyValidator) ValidateKey(r *http.Request) (bool, string) {
 		return false, "API key expired"
 	}
 
-	// Check rate limit
-	var count int
+	// Check rate limit using api_key_usage (sum of request_count in last minute)
+	var recentCount int
 	err = v.db.QueryRow(`
-		SELECT COUNT(*) FROM api_key_usage
-		WHERE key_id = $1 AND requested_at > NOW() - INTERVAL '1 minute'
-	`, keyID).Scan(&count)
+		SELECT COALESCE(SUM(request_count),0) FROM api_key_usage
+		WHERE api_key_id = $1 AND created_at > NOW() - INTERVAL '1 minute'
+	`, keyID).Scan(&recentCount)
 
 	if err != nil {
 		return false, "rate limit check failed"
 	}
 
-	if count >= rateLimit {
+	if recentCount >= rateLimit {
 		return false, "rate limit exceeded"
 	}
 
-	// Log usage
+	// Log usage: upsert per (api_key_id, endpoint)
 	_, _ = v.db.Exec(`
-		INSERT INTO api_key_usage (key_id, endpoint, status_code)
-		VALUES ($1, $2, $3)
-	`, keyID, r.URL.Path, http.StatusOK)
+		INSERT INTO api_key_usage (api_key_id, endpoint, request_count, created_at)
+		VALUES ($1, $2, 1, NOW())
+		ON CONFLICT (api_key_id, endpoint) DO UPDATE SET request_count = api_key_usage.request_count + 1, created_at = NOW()
+	`, keyID, r.URL.Path)
 
 	// Update last_used_at
 	_, _ = v.db.Exec(`

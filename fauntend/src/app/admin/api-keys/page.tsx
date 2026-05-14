@@ -68,7 +68,7 @@ export default function APIKeysPage() {
     setLoading(true);
 
     try {
-      const res = await fetch('/api/admin/api-keys/create', {
+      const res = await fetch('/api/admin/api-keys', {
         method: 'POST',
         headers: getAdminHeaders(),
         body: JSON.stringify(formData),
@@ -100,6 +100,27 @@ export default function APIKeysPage() {
       fetchKeys();
     } catch (error) {
       console.error('Failed to delete key:', error);
+    }
+  };
+
+  const handleRegenerateKey = async (keyId: string) => {
+    if (!confirm('Regenerate this API key? The old key will stop working.')) return;
+    if (!hasAccess) return;
+    try {
+      const res = await fetch('/api/admin/api-keys', {
+        method: 'POST',
+        headers: getAdminHeaders(),
+        body: JSON.stringify({ action: 'regenerate', id: keyId }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setNewKey(data?.data ?? data);
+        fetchKeys();
+      } else {
+        console.error('Failed to regenerate key', data);
+      }
+    } catch (err) {
+      console.error('Failed to regenerate key', err);
     }
   };
 
@@ -257,12 +278,21 @@ export default function APIKeysPage() {
                     </td>
                     <td className="p-3 text-sm">{new Date(key.created_at).toLocaleDateString()}</td>
                     <td className="p-3 text-center">
-                      <button
-                        onClick={() => handleDeleteKey(key.id)}
-                        className="text-red-600 hover:text-red-800 inline-block"
-                      >
-                        <Trash2 size={18} />
-                      </button>
+                      <div className="flex items-center justify-center gap-2">
+                        <button
+                          onClick={() => handleRegenerateKey(key.id)}
+                          className="text-blue-600 hover:text-blue-800 inline-block"
+                          title="Regenerate"
+                        >
+                          <RefreshCw size={18} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteKey(key.id)}
+                          className="text-red-600 hover:text-red-800 inline-block"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

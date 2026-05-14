@@ -184,12 +184,12 @@ export default function AIKeysPage() {
 
             {/* Keys List */}
             <div className="space-y-3">
-                {filteredKeys.length === 0 ? (
+                {(filteredKeys ?? []).length === 0 ? (
                     <div className="p-6 bg-gray-50 rounded-lg text-center text-gray-600">
                         No API keys configured yet. Add one to get started.
                     </div>
                 ) : (
-                    filteredKeys.map(key => (
+                    (filteredKeys ?? []).map(key => (
                         <KeyCard
                             key={key.id}
                             keyData={key}

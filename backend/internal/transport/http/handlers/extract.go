@@ -76,7 +76,14 @@ func (h *Handler) Extract(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	builder.WithCookieSource(cookieSourceLabel(strings.TrimSpace(req.Cookie)))
+	// Remember if client supplied a cookie in the request body
+	clientProvidedCookie := strings.TrimSpace(req.Cookie) != ""
+	// Set initial cookie source based on whether client provided a cookie
+	if clientProvidedCookie {
+		builder.WithCookieSource(cookieSourceLabel("client"))
+	} else {
+		builder.WithCookieSource(cookieSourceLabel("none"))
+	}
 
 	// Create a context with timeout for the extract operation
 	// Configurable via EXTRACTION_TIMEOUT_SECONDS environment variable (default: 85)
@@ -85,10 +92,9 @@ func (h *Handler) Extract(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 
 	// If request carries an admin API key and the client did not provide a cookie,
-	// attempt to inject a server-side private cookie for the platform.
 	apiKeyHeader := r.Header.Get("X-API-Key")
-	if apiKeyHeader != "" && strings.TrimSpace(req.Cookie) == "" && h.db != nil {
-		// Find a private cookie for this platform
+	if strings.TrimSpace(req.Cookie) == "" && h.db != nil {
+		// Infer platform from URL
 		platform := "generic"
 		if parsed, errp := url.Parse(strings.TrimSpace(req.URL)); errp == nil {
 			host := strings.ToLower(strings.TrimSpace(parsed.Hostname()))
@@ -102,17 +108,35 @@ func (h *Handler) Extract(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		}
-		var cookieVal sql.NullString
-		errQuery := h.db.QueryRow(`
+
+		// 1) Try public admin cookie (usable by anyone)
+		var publicVal sql.NullString
+		pubErr := h.db.QueryRow(`
 			SELECT value FROM admin_cookies
-			WHERE visibility = 'private' AND enabled = TRUE AND deleted_at IS NULL AND (expire_at IS NULL OR expire_at > NOW()) AND platform = $1
+			WHERE visibility = 'public' AND enabled = TRUE AND deleted_at IS NULL AND (expire_at IS NULL OR expire_at > NOW()) AND platform = $1
 			ORDER BY last_used_at NULLS FIRST, created_at DESC
 			LIMIT 1
-		`, platform).Scan(&cookieVal)
-		if errQuery == nil && cookieVal.Valid && cookieVal.String != "" {
-			req.Cookie = cookieVal.String
-			// Update last_used_at for auditing
-			_, _ = h.db.Exec(`UPDATE admin_cookies SET last_used_at = NOW() WHERE value = $1`, cookieVal.String)
+		`, platform).Scan(&publicVal)
+		if pubErr == nil && publicVal.Valid && publicVal.String != "" {
+			req.Cookie = publicVal.String
+			_, _ = h.db.Exec(`UPDATE admin_cookies SET last_used_at = NOW() WHERE value = $1`, publicVal.String)
+			// mark that the cookie used was from server
+			builder.WithCookieSource(cookieSourceLabel("server"))
+		} else if apiKeyHeader != "" {
+			// 2) If API key present, try private cookie
+			var privateVal sql.NullString
+			privErr := h.db.QueryRow(`
+				SELECT value FROM admin_cookies
+				WHERE visibility = 'private' AND enabled = TRUE AND deleted_at IS NULL AND (expire_at IS NULL OR expire_at > NOW()) AND platform = $1
+				ORDER BY last_used_at NULLS FIRST, created_at DESC
+				LIMIT 1
+			`, platform).Scan(&privateVal)
+			if privErr == nil && privateVal.Valid && privateVal.String != "" {
+				req.Cookie = privateVal.String
+				_, _ = h.db.Exec(`UPDATE admin_cookies SET last_used_at = NOW() WHERE value = $1`, privateVal.String)
+				// mark that the cookie used was from server (private)
+				builder.WithCookieSource(cookieSourceLabel("server"))
+			}
 		}
 	}
 
@@ -127,6 +151,11 @@ func (h *Handler) Extract(w http.ResponseWriter, r *http.Request) {
 			"error", err.Error(),
 			"error_type", fmt.Sprintf("%T", err),
 		)
+		// Persist failed download for diagnostics
+		if h.db != nil {
+			_, _ = h.db.Exec(`INSERT INTO failed_downloads_log (url, platform, error_message, cookie_attempted, cookie_source, created_at) VALUES ($1,$2,$3,$4,$5,NOW())`, req.URL, fallbackPlatformFromURL(req.URL), err.Error(), req.Cookie != "", cookieSourceLabel(strings.TrimSpace(req.Cookie)))
+			_, _ = h.db.Exec(`UPDATE platform_stats SET failed_downloads = failed_downloads + 1, total_downloads = total_downloads + 1, last_updated = NOW() WHERE platform = $1`, fallbackPlatformFromURL(req.URL))
+		}
 		// Persist failure to DB if available
 		if h.db != nil {
 			_, _ = h.db.Exec(`INSERT INTO failed_downloads_log (url, platform, error_message, cookie_attempted, cookie_source, created_at) VALUES ($1,$2,$3,$4,$5,NOW())`, req.URL, platform, err.Error(), req.Cookie != "", cookieSourceLabel(strings.TrimSpace(req.Cookie)))

@@ -726,7 +726,7 @@ export default function AdminDashboard() {
                           </tr>
                         </thead>
                         <tbody>
-                          {users.map((user) => (
+                          {(users ?? []).map((user) => (
                             <tr key={user.id} className="border-t border-[var(--border-color)] hover:bg-[var(--bg-secondary)]/50 transition">
                               <td className="px-4 py-3">{user.email}</td>
                               <td className="px-4 py-3">{user.username || '-'}</td>
@@ -930,7 +930,7 @@ export default function AdminDashboard() {
                           </tr>
                         </thead>
                         <tbody>
-                          {referrals.map((ref) => (
+                          {(referrals ?? []).map((ref) => (
                             <tr key={ref.id} className="border-t border-[var(--border-color)] hover:bg-[var(--bg-secondary)]/50 transition">
                               <td className="px-4 py-3 font-mono font-bold text-[var(--accent-primary)]">{ref.code}</td>
                               <td className="px-4 py-3">

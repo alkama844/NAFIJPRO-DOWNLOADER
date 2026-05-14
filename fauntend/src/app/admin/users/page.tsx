@@ -329,7 +329,7 @@ function UsersTab() {
                     <div className="text-center py-12 text-[var(--text-muted)]">Loading...</div>
                 ) : users.length === 0 ? (
                     <div className="text-center py-12 text-[var(--text-muted)]">No users found</div>
-                ) : users.map((user, i) => (
+                ) : (users ?? []).map((user, i) => (
                     <motion.div key={user.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.02 }}
                         className={`glass-card p-3 flex flex-col sm:flex-row sm:items-center gap-3 ${user.status !== 'active' ? 'opacity-60' : ''}`}>
                         <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -484,7 +484,7 @@ function ReferralsTab() {
                             Create First Code
                         </button>
                     </div>
-                ) : referrals.map((ref, i) => {
+                ) : (referrals ?? []).map((ref, i) => {
                     const status = getStatus(ref);
                     return (
                         <motion.div 

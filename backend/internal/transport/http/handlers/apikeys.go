@@ -224,6 +224,56 @@ func (h *APIKeyHandler) GetKeyStats(w http.ResponseWriter, r *http.Request) {
 	SuccessResponse(w, stats)
 }
 
+// RegenerateAPIKey generates a new raw key for an existing API key id and updates the stored hash/preview
+func (h *APIKeyHandler) RegenerateAPIKey(w http.ResponseWriter, r *http.Request) {
+	if h.db == nil {
+		InternalError(w, "Database not initialized")
+		return
+	}
+
+	var req struct {
+		ID string `json:"id"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		BadRequest(w, "Invalid request body")
+		return
+	}
+
+	if req.ID == "" {
+		BadRequest(w, "Key ID required")
+		return
+	}
+
+	// Ensure key exists
+	var exists bool
+	err := h.db.QueryRow(`SELECT EXISTS(SELECT 1 FROM api_keys WHERE id = $1 AND deleted_at IS NULL)`, req.ID).Scan(&exists)
+	if err != nil || !exists {
+		NotFound(w, "API key not found")
+		return
+	}
+
+	// Generate new key and update hash & preview
+	newKey := generateAPIKey()
+	newHash := hashAPIKey(newKey)
+	newPreview := newKey[:8] + "..." + newKey[len(newKey)-4:]
+
+	_, err = h.db.Exec(`UPDATE api_keys SET key_hash = $1, key_preview = $2, updated_at = NOW() WHERE id = $3`, newHash, newPreview, req.ID)
+	if err != nil {
+		fmt.Printf("Failed to regenerate API key: %v\n", err)
+		InternalError(w, "Failed to regenerate API key")
+		return
+	}
+
+	resp := APIKeyResponse{
+		ID:      req.ID,
+		Key:     newKey,
+		Preview: newPreview,
+	}
+
+	SuccessResponse(w, resp)
+}
+
 // Helper functions
 func generateAPIKey() string {
 	b := make([]byte, 32)

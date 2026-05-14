@@ -118,6 +118,7 @@ func NewRouter(h *handlers.Handler, cfg config.Config) http.Handler {
 		admin.Get("/api-keys", h.ListAPIKeys)
 		admin.Post("/api-keys", h.CreateAPIKey)
 		admin.Delete("/api-keys", h.DeleteAPIKey)
+		admin.Post("/api-keys/regenerate", h.RegenerateAPIKey)
 		admin.Get("/ai-keys", h.ListAPIKeys)   // Alias
 		admin.Post("/ai-keys", h.CreateAPIKey) // Alias
 

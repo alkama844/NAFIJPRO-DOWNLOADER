@@ -235,6 +235,11 @@ func (h *Handler) DeleteAPIKey(w http.ResponseWriter, r *http.Request) {
 	apiKeyHandler.DeleteAPIKey(w, r)
 }
 
+func (h *Handler) RegenerateAPIKey(w http.ResponseWriter, r *http.Request) {
+	apiKeyHandler := NewAPIKeyHandler(h.db)
+	apiKeyHandler.RegenerateAPIKey(w, r)
+}
+
 func (h *Handler) GetAPIKeyStats(w http.ResponseWriter, r *http.Request) {
 	apiKeyHandler := NewAPIKeyHandler(h.db)
 	apiKeyHandler.GetKeyStats(w, r)

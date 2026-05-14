@@ -38,7 +38,7 @@ export function AdminTable<T>({
         );
     }
 
-    if (data.length === 0) {
+    if ((data ?? []).length === 0) {
         return (
             <div className="text-center py-12">
                 {emptyIcon && <div className="mb-3 flex justify-center text-[var(--text-muted)]">{emptyIcon}</div>}
@@ -64,7 +64,7 @@ export function AdminTable<T>({
                     </tr>
                 </thead>
                 <tbody>
-                    {data.map((item, index) => (
+                    {(data ?? []).map((item, index) => (
                         <tr
                             key={keyExtractor(item, index)}
                             className={`border-b border-[var(--border-color)] last:border-0 ${onRowClick ? 'cursor-pointer hover:bg-[var(--bg-secondary)]/50' : ''}`}

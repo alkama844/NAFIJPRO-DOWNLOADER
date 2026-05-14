@@ -64,7 +64,7 @@ function CommunicationsContent() {
 
                 {/* Tabs */}
                 <div className="flex flex-wrap items-center gap-2">
-                    {tabs.map((tab) => (
+                    {(tabs ?? []).map((tab) => (
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
@@ -217,7 +217,7 @@ function AnnouncementsTab() {
                 </button>
             </div>
 
-            {announcements.length === 0 ? (
+            {(announcements ?? []).length === 0 ? (
                 <AdminCard>
                     <div className="flex flex-col items-center justify-center py-12 text-center">
                         <MessageSquare className="w-12 h-12 text-[var(--text-muted)] mb-4" />
@@ -227,7 +227,7 @@ function AnnouncementsTab() {
                 </AdminCard>
             ) : (
                 <div className="space-y-3">
-                    {announcements.map((ann) => (
+                    {(announcements ?? []).map((ann) => (
                         <AdminCard key={ann.id}>
                             <div className="flex items-start gap-4">
                                 <span className="text-2xl">{ann.icon || '📢'}</span>
@@ -432,7 +432,7 @@ function PushNotificationsTab() {
                 </AdminCard>
             ) : (
                 <div className="space-y-3">
-                    {notifications.map((notif) => (
+                    {(notifications ?? []).map((notif) => (
                         <AdminCard key={notif.id}>
                             <div className="flex items-start gap-4">
                                 <Bell className="w-5 h-5 text-[var(--accent-primary)] mt-1" />
@@ -557,7 +557,7 @@ function BannerAdsTab() {
                 </AdminCard>
             ) : (
                 <div className="grid md:grid-cols-2 gap-4">
-                    {banners.map((banner) => (
+                    {(banners ?? []).map((banner) => (
                         <AdminCard key={banner.id}>
                             <div className="space-y-3">
                                 <img src={banner.image_url} alt={banner.alt_text || banner.name} className="w-full h-32 object-cover rounded-lg" />
@@ -713,7 +713,7 @@ function CompactAdsTab() {
                 </AdminCard>
             ) : (
                 <div className="grid md:grid-cols-3 gap-4">
-                    {compactAds.map((ad) => (
+                    {(compactAds ?? []).map((ad) => (
                         <AdminCard key={ad.id}>
                             <div className="space-y-3">
                                 <img src={ad.image_url} alt={ad.title} className="w-full h-24 object-cover rounded-lg" />
