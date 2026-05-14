@@ -8,6 +8,7 @@ import (
 	"downaria-api/internal/transport/http/handlers"
 	"downaria-api/internal/transport/http/middleware"
 	"downaria-api/pkg/response"
+
 	"github.com/go-chi/chi/v5"
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
 )
@@ -108,20 +109,26 @@ func NewRouter(h *handlers.Handler, cfg config.Config) http.Handler {
 		})
 	})
 
-	// Admin API Key routes
+	// Admin routes (POST /api/admin/api-keys handles both create and bulk operations)
 	r.Route("/api/admin", func(admin chi.Router) {
-		// API Key management
-		admin.Post("/api-keys/create", h.CreateAPIKey)
+		// API Key management - unified endpoint with action param
+		// GET /api/admin/api-keys - list all keys
+		// POST /api/admin/api-keys - create key or perform action (create/update/delete/regenerate)
+		// DELETE /api/admin/api-keys - soft delete key
 		admin.Get("/api-keys", h.ListAPIKeys)
+		admin.Post("/api-keys", h.CreateAPIKey)
 		admin.Delete("/api-keys", h.DeleteAPIKey)
-		admin.Get("/api-keys/stats", h.GetAPIKeyStats)
+		admin.Get("/ai-keys", h.ListAPIKeys)   // Alias
+		admin.Post("/ai-keys", h.CreateAPIKey) // Alias
 
-		// Aliases for frontend compatibility (with/without hyphens)
-		admin.Get("/apikeys", h.ListAPIKeys)
-		admin.Post("/apikeys", h.CreateAPIKey) // POST support for apikeys endpoint
-		admin.Delete("/apikeys", h.DeleteAPIKey) // DELETE support for apikeys endpoint
-		admin.Get("/stats", h.GetAPIKeyStats)
-		admin.Get("/services", h.GetAPIKeyStats) // Same as stats for now
+		// Stats endpoints
+		admin.Get("/system-config", h.GetAPIKeyStats) // System stats
+		admin.Get("/services", h.GetAPIKeyStats)      // Service stats (same as system-config)
+
+		// Cookie management (placeholder for now)
+		admin.Get("/cookies", h.ListCookies)
+		admin.Post("/cookies", h.CreateCookie)
+		admin.Delete("/cookies", h.DeleteCookie)
 	})
 
 	return r

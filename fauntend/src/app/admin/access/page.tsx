@@ -22,6 +22,18 @@ export default function AccessPage() {
     const { keys, loading, saving, stats, createKey, toggleKey, deleteKey, regenerateKey } = useApiKeys();
     const { config: serviceConfig, loading: servicesLoading, updateGlobal } = useServices();
 
+    // Safe defaults for undefined data
+    const safeKeys = keys ?? [];
+    const safeStats = stats ?? { totalKeys: 0, activeKeys: 0, totalRequests: 0 };
+    const safeConfig = serviceConfig ?? {
+        globalRateLimit: 15,
+        playgroundRateLimit: 5,
+        playgroundEnabled: false,
+        geminiRateLimit: 8,
+        geminiRateWindow: 1,
+        maintenanceMode: false
+    };
+
     // Form state for new key
     const [form, setForm] = useState({
         name: '',
@@ -216,9 +228,9 @@ export default function AccessPage() {
                         >
                             {/* Stats Cards */}
                             <div className="grid grid-cols-3 gap-3">
-                                <StatCard icon={<Key className="w-5 h-5" />} label="Total Keys" value={stats.totalKeys.toString()} color="text-[var(--accent-primary)]" />
-                                <StatCard icon={<Power className="w-5 h-5" />} label="Active" value={stats.activeKeys.toString()} color="text-green-400" />
-                                <StatCard icon={<Zap className="w-5 h-5" />} label="Requests" value={stats.totalRequests.toLocaleString()} color="text-blue-400" />
+                                <StatCard icon={<Key className="w-5 h-5" />} label="Total Keys" value={safeStats.totalKeys.toString()} color="text-[var(--accent-primary)]" />
+                                <StatCard icon={<Power className="w-5 h-5" />} label="Active" value={safeStats.activeKeys.toString()} color="text-green-400" />
+                                <StatCard icon={<Zap className="w-5 h-5" />} label="Requests" value={safeStats.totalRequests.toLocaleString()} color="text-blue-400" />
                             </div>
 
                             {/* API Docs (Collapsible) */}
@@ -255,7 +267,7 @@ export default function AccessPage() {
                             </AnimatePresence>
 
                             {/* Empty State */}
-                            {keys.length === 0 && (
+                            {safeKeys.length === 0 && (
                                 <EmptyState
                                     icon={<Key className="w-8 h-8" />}
                                     title="No API Keys"
@@ -265,7 +277,7 @@ export default function AccessPage() {
                             )}
 
                             {/* Keys Table */}
-                            {keys.length > 0 && (
+                            {safeKeys.length > 0 && (
                                 <AdminCard className="overflow-hidden p-0">
                                     <div className="overflow-x-auto">
                                         <table className="w-full text-sm">
@@ -280,7 +292,7 @@ export default function AccessPage() {
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {keys.map((apiKey, idx) => (
+                                                {safeKeys.map((apiKey, idx) => (
                                                     <motion.tr
                                                         key={apiKey.id}
                                                         initial={{ opacity: 0 }}
@@ -403,7 +415,7 @@ export default function AccessPage() {
                                         <div className="flex items-center gap-2">
                                             <input
                                                 type="number"
-                                                value={serviceConfig?.globalRateLimit ?? 15}
+                                                value={safeConfig.globalRateLimit ?? 15}
                                                 onChange={(e) => {
                                                     const val = parseInt(e.target.value);
                                                     if (val > 0 && val <= 1000) {
@@ -447,15 +459,15 @@ export default function AccessPage() {
                                             <p className="text-xs text-[var(--text-muted)]">Allow access to playground endpoint</p>
                                         </div>
                                         <button
-                                            onClick={() => handleTogglePlayground(!serviceConfig?.playgroundEnabled)}
+                                            onClick={() => handleTogglePlayground(!safeConfig.playgroundEnabled)}
                                             disabled={settingsSaving}
                                             className={`relative w-12 h-6 rounded-full transition-colors ${
-                                                serviceConfig?.playgroundEnabled ? 'bg-green-500' : 'bg-[var(--bg-card)] border border-[var(--border-color)]'
+                                                safeConfig.playgroundEnabled ? 'bg-green-500' : 'bg-[var(--bg-card)] border border-[var(--border-color)]'
                                             }`}
                                         >
                                             <span
                                                 className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${
-                                                    serviceConfig?.playgroundEnabled ? 'translate-x-7' : 'translate-x-1'
+                                                    safeConfig.playgroundEnabled ? 'translate-x-7' : 'translate-x-1'
                                                 }`}
                                             />
                                         </button>
@@ -470,7 +482,7 @@ export default function AccessPage() {
                                         <div className="flex items-center gap-2">
                                             <input
                                                 type="number"
-                                                value={serviceConfig?.playgroundRateLimit ?? 5}
+                                                value={safeConfig.playgroundRateLimit ?? 5}
                                                 onChange={(e) => {
                                                     const val = parseInt(e.target.value);
                                                     if (val > 0 && val <= 100) {
@@ -479,7 +491,7 @@ export default function AccessPage() {
                                                 }}
                                                 min={1}
                                                 max={100}
-                                                disabled={settingsSaving || !serviceConfig?.playgroundEnabled}
+                                                disabled={settingsSaving || !safeConfig.playgroundEnabled}
                                                 className="w-20 px-3 py-1.5 rounded-lg bg-[var(--bg-card)] border border-[var(--border-color)] text-sm text-center disabled:opacity-50"
                                             />
                                             <span className="text-xs text-[var(--text-muted)]">/min</span>
@@ -516,11 +528,11 @@ export default function AccessPage() {
                                         <div className="flex items-center gap-2">
                                             <input
                                                 type="number"
-                                                value={serviceConfig?.geminiRateLimit ?? 8}
+                                                value={safeConfig.geminiRateLimit ?? 8}
                                                 onChange={(e) => {
                                                     const val = parseInt(e.target.value);
                                                     if (val > 0 && val <= 1000) {
-                                                        handleUpdateGeminiRateLimit(val, serviceConfig?.geminiRateWindow);
+                                                        handleUpdateGeminiRateLimit(val, safeConfig.geminiRateWindow);
                                                     }
                                                 }}
                                                 min={1}
@@ -541,11 +553,11 @@ export default function AccessPage() {
                                         <div className="flex items-center gap-2">
                                             <input
                                                 type="number"
-                                                value={serviceConfig?.geminiRateWindow ?? 1}
+                                                value={safeConfig.geminiRateWindow ?? 1}
                                                 onChange={(e) => {
                                                     const val = parseInt(e.target.value);
                                                     if (val > 0 && val <= 60) {
-                                                        handleUpdateGeminiRateLimit(serviceConfig?.geminiRateLimit ?? 8, val);
+                                                        handleUpdateGeminiRateLimit(safeConfig.geminiRateLimit ?? 8, val);
                                                     }
                                                 }}
                                                 min={1}
@@ -560,7 +572,7 @@ export default function AccessPage() {
                                     {/* Info Note */}
                                     <div className="p-3 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-xs text-cyan-400 flex items-start gap-2">
                                         <Info className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                                        <span>AI chat uses Gemini API. Rate limit is per IP address. Current: {serviceConfig?.geminiRateLimit ?? 8} requests per {serviceConfig?.geminiRateWindow ?? 1} minute(s).</span>
+                                        <span>AI chat uses Gemini API. Rate limit is per IP address. Current: {safeConfig.geminiRateLimit ?? 8} requests per {safeConfig.geminiRateWindow ?? 1} minute(s).</span>
                                     </div>
                                 </div>
                             </AdminCard>
@@ -573,28 +585,28 @@ export default function AccessPage() {
                                 </h3>
                                 <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                                     <div className="p-3 rounded-lg bg-[var(--bg-secondary)] text-center">
-                                        <p className="text-lg font-bold text-[var(--text-primary)]">{serviceConfig?.globalRateLimit ?? 15}</p>
+                                        <p className="text-lg font-bold text-[var(--text-primary)]">{safeConfig.globalRateLimit ?? 15}</p>
                                         <p className="text-xs text-[var(--text-muted)]">Public Rate/min</p>
                                     </div>
                                     <div className="p-3 rounded-lg bg-[var(--bg-secondary)] text-center">
-                                        <p className="text-lg font-bold text-[var(--text-primary)]">{serviceConfig?.playgroundRateLimit ?? 5}</p>
+                                        <p className="text-lg font-bold text-[var(--text-primary)]">{safeConfig.playgroundRateLimit ?? 5}</p>
                                         <p className="text-xs text-[var(--text-muted)]">Playground Rate/min</p>
                                     </div>
                                     <div className="p-3 rounded-lg bg-[var(--bg-secondary)] text-center">
-                                        <p className="text-lg font-bold text-[var(--text-primary)]">{serviceConfig?.geminiRateLimit ?? 8}/{serviceConfig?.geminiRateWindow ?? 1}m</p>
+                                        <p className="text-lg font-bold text-[var(--text-primary)]">{safeConfig.geminiRateLimit ?? 8}/{safeConfig.geminiRateWindow ?? 1}m</p>
                                         <p className="text-xs text-[var(--text-muted)]">Gemini AI Rate</p>
                                     </div>
                                     <div className="p-3 rounded-lg bg-[var(--bg-secondary)] text-center">
-                                        <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs ${serviceConfig?.playgroundEnabled ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
-                                            <span className={`w-1.5 h-1.5 rounded-full ${serviceConfig?.playgroundEnabled ? 'bg-green-400' : 'bg-red-400'}`} />
-                                            {serviceConfig?.playgroundEnabled ? 'Enabled' : 'Disabled'}
+                                        <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs ${safeConfig.playgroundEnabled ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                                            <span className={`w-1.5 h-1.5 rounded-full ${safeConfig.playgroundEnabled ? 'bg-green-400' : 'bg-red-400'}`} />
+                                            {safeConfig.playgroundEnabled ? 'Enabled' : 'Disabled'}
                                         </div>
                                         <p className="text-xs text-[var(--text-muted)] mt-1">Playground</p>
                                     </div>
                                     <div className="p-3 rounded-lg bg-[var(--bg-secondary)] text-center">
-                                        <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs ${serviceConfig?.maintenanceMode ? 'bg-yellow-500/20 text-yellow-400' : 'bg-green-500/20 text-green-400'}`}>
-                                            <span className={`w-1.5 h-1.5 rounded-full ${serviceConfig?.maintenanceMode ? 'bg-yellow-400' : 'bg-green-400'}`} />
-                                            {serviceConfig?.maintenanceMode ? 'Maintenance' : 'Online'}
+                                        <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs ${safeConfig.maintenanceMode ? 'bg-yellow-500/20 text-yellow-400' : 'bg-green-500/20 text-green-400'}`}>
+                                            <span className={`w-1.5 h-1.5 rounded-full ${safeConfig.maintenanceMode ? 'bg-yellow-400' : 'bg-green-400'}`} />
+                                            {safeConfig.maintenanceMode ? 'Maintenance' : 'Online'}
                                         </div>
                                         <p className="text-xs text-[var(--text-muted)] mt-1">API Status</p>
                                     </div>

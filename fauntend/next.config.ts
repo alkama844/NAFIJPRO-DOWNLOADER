@@ -14,7 +14,7 @@ const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
 // ─── Content Security Policy ──────────────────────────────────────────────────
 const CSP_DIRECTIVES = {
   'default-src': ["'self'"],
-  'script-src': ["'self'", "'unsafe-inline'", "https://va.vercel-scripts.com"],
+  'script-src': ["'self'", "'unsafe-inline'"], // Removed: "https://va.vercel-scripts.com" - causes 404 if analytics not enabled
   'style-src': ["'self'", "'unsafe-inline'"],
   'img-src': ["'self'", "data:", "blob:", "https:", "http://localhost:*"],
   'font-src': ["'self'", "data:"],
@@ -26,7 +26,7 @@ const CSP_DIRECTIVES = {
     "https://nafijthepro-downloader.onrender.com",
     "https://downloader.nafij.me",
     "https://downloader.nafijrahaman.me",
-    "https://va.vercel-scripts.com",
+    // Removed: "https://va.vercel-scripts.com" - causes 404 if analytics not enabled
     "https://discord.com",
     "wss://*.supabase.co",
     "http://localhost:*",

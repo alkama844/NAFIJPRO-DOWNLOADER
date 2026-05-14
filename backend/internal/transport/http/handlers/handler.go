@@ -18,6 +18,7 @@ import (
 	"downaria-api/internal/infra/persistence"
 	"downaria-api/internal/shared/security"
 	"downaria-api/internal/shared/util"
+
 	"golang.org/x/sync/singleflight"
 )
 
@@ -208,4 +209,20 @@ func (h *Handler) DeleteAPIKey(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) GetAPIKeyStats(w http.ResponseWriter, r *http.Request) {
 	apiKeyHandler := NewAPIKeyHandler(h.db)
 	apiKeyHandler.GetKeyStats(w, r)
+}
+
+// Cookie handlers
+func (h *Handler) ListCookies(w http.ResponseWriter, r *http.Request) {
+	cookieHandler := NewCookieHandler(h.db)
+	cookieHandler.ListCookies(w, r)
+}
+
+func (h *Handler) CreateCookie(w http.ResponseWriter, r *http.Request) {
+	cookieHandler := NewCookieHandler(h.db)
+	cookieHandler.CreateCookie(w, r)
+}
+
+func (h *Handler) DeleteCookie(w http.ResponseWriter, r *http.Request) {
+	cookieHandler := NewCookieHandler(h.db)
+	cookieHandler.DeleteCookie(w, r)
 }

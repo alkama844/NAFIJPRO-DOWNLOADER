@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 )
@@ -18,90 +19,91 @@ func NewAPIKeyHandler(db *sql.DB) *APIKeyHandler {
 	return &APIKeyHandler{db: db}
 }
 
-// CreateAPIKey creates new API key
+type APIKeyResponse struct {
+	ID        string         `json:"id"`
+	Key       string         `json:"key,omitempty"` // Only on create/regenerate
+	Preview   string         `json:"key"`           // Display-only preview
+	Name      string         `json:"name"`
+	Enabled   bool           `json:"enabled"`
+	RateLimit int            `json:"rateLimit"`
+	CreatedAt time.Time      `json:"createdAt"`
+	LastUsed  *time.Time     `json:"lastUsed,omitempty"`
+	ExpiresAt *time.Time     `json:"expiresAt,omitempty"`
+	Stats     map[string]int `json:"stats,omitempty"`
+}
+
+// CreateAPIKey creates new API key with proper error handling
 func (h *APIKeyHandler) CreateAPIKey(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	if h.db == nil {
+		InternalError(w, "Database not initialized")
 		return
 	}
 
 	var req struct {
-		Action            string `json:"action"`
-		Name              string `json:"name"`
-		RateLimitPerMin   int    `json:"rate_limit_per_minute"`
-		RateLimit         int    `json:"rateLimit"`
-		ExpireInDays      int    `json:"expire_in_days"`
-		ValidityDays      int    `json:"validityDays"`
+		Name         string `json:"name"`
+		RateLimit    int    `json:"rateLimit"`
+		ValidityDays *int   `json:"validityDays"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request", http.StatusBadRequest)
+		BadRequest(w, "Invalid request body")
 		return
 	}
 
 	if req.Name == "" {
-		http.Error(w, "Name is required", http.StatusBadRequest)
+		BadRequest(w, "Name is required")
 		return
 	}
 
-	// Handle both field name formats
-	rateLimit := req.RateLimitPerMin
-	if rateLimit == 0 && req.RateLimit > 0 {
-		rateLimit = req.RateLimit
-	}
+	rateLimit := req.RateLimit
 	if rateLimit == 0 {
 		rateLimit = 60
 	}
 
-	expireInDays := req.ExpireInDays
-	if expireInDays == 0 && req.ValidityDays > 0 {
-		expireInDays = req.ValidityDays
-	}
-
-	// Generate random key
 	key := generateAPIKey()
 	keyHash := hashAPIKey(key)
 	keyPreview := key[:8] + "..." + key[len(key)-4:]
 
-	// Set expiration
 	var expireAt *time.Time
-	if expireInDays > 0 {
-		exp := time.Now().AddDate(0, 0, expireInDays)
+	if req.ValidityDays != nil && *req.ValidityDays > 0 {
+		exp := time.Now().AddDate(0, 0, *req.ValidityDays)
 		expireAt = &exp
 	}
 
-	// Insert into database
 	var keyID string
 	err := h.db.QueryRow(`
-		INSERT INTO api_keys (key_hash, key_preview, name, rate_limit_per_minute, expire_at)
-		VALUES ($1, $2, $3, $4, $5)
+		INSERT INTO api_keys (key_hash, key_preview, name, rate_limit_per_minute, expire_at, enabled)
+		VALUES ($1, $2, $3, $4, $5, true)
 		RETURNING id
 	`, keyHash, keyPreview, req.Name, rateLimit, expireAt).Scan(&keyID)
 
 	if err != nil {
-		http.Error(w, "Failed to create key", http.StatusInternalServerError)
+		fmt.Printf("Failed to create API key: %v\n", err)
+		InternalError(w, "Failed to create API key")
 		return
 	}
 
-	// Return key (only shown once!)
-	resp := map[string]interface{}{
-		"success": true,
-		"data": map[string]interface{}{
-			"id":      keyID,
-			"key":     key,
-			"preview": keyPreview,
-			"name":    req.Name,
-		},
-		"plainKey": key,
-		"message":  "⚠️  Copy this key now - it won't be shown again!",
+	resp := APIKeyResponse{
+		ID:        keyID,
+		Key:       key,
+		Preview:   keyPreview,
+		Name:      req.Name,
+		Enabled:   true,
+		RateLimit: rateLimit,
+		CreatedAt: time.Now(),
+		ExpiresAt: expireAt,
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(resp)
+	CreatedResponse(w, resp)
 }
 
-// ListAPIKeys lists all API keys
+// ListAPIKeys lists all API keys with error handling
 func (h *APIKeyHandler) ListAPIKeys(w http.ResponseWriter, r *http.Request) {
+	if h.db == nil {
+		InternalError(w, "Database not initialized")
+		return
+	}
+
 	rows, err := h.db.Query(`
 		SELECT id, key_preview, name, enabled, rate_limit_per_minute, last_used_at, created_at, expire_at
 		FROM api_keys
@@ -110,12 +112,13 @@ func (h *APIKeyHandler) ListAPIKeys(w http.ResponseWriter, r *http.Request) {
 	`)
 
 	if err != nil {
-		http.Error(w, "Failed to fetch keys", http.StatusInternalServerError)
+		fmt.Printf("Failed to fetch API keys: %v\n", err)
+		InternalError(w, "Failed to fetch API keys")
 		return
 	}
 	defer rows.Close()
 
-	var keys []map[string]interface{}
+	var keys []APIKeyResponse
 	for rows.Next() {
 		var id, preview, name string
 		var enabled bool
@@ -127,141 +130,101 @@ func (h *APIKeyHandler) ListAPIKeys(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		key := map[string]interface{}{
-			"id":                    id,
-			"preview":              preview,
-			"name":                 name,
-			"enabled":              enabled,
-			"rate_limit_per_minute": rateLimit,
-			"created_at":           createdAt.Time,
+		apiKey := APIKeyResponse{
+			ID:        id,
+			Preview:   preview,
+			Name:      name,
+			Enabled:   enabled,
+			RateLimit: rateLimit,
+			CreatedAt: createdAt.Time,
 		}
 
 		if lastUsed.Valid {
-			key["last_used_at"] = lastUsed.Time
+			apiKey.LastUsed = &lastUsed.Time
 		}
 
 		if expireAt.Valid {
-			key["expire_at"] = expireAt.Time
-			key["expired"] = expireAt.Time.Before(time.Now())
+			apiKey.ExpiresAt = &expireAt.Time
 		}
 
-		keys = append(keys, key)
+		keys = append(keys, apiKey)
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(keys)
+	if keys == nil {
+		keys = []APIKeyResponse{}
+	}
+
+	SuccessResponse(w, keys)
 }
 
-// DeleteAPIKey deletes an API key
+// DeleteAPIKey deletes an API key with error handling
 func (h *APIKeyHandler) DeleteAPIKey(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodDelete {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	if h.db == nil {
+		InternalError(w, "Database not initialized")
 		return
 	}
 
 	keyID := r.URL.Query().Get("id")
 	if keyID == "" {
-		http.Error(w, "Key ID required", http.StatusBadRequest)
+		BadRequest(w, "Key ID required")
 		return
 	}
 
-	_, err := h.db.Exec(`
+	result, err := h.db.Exec(`
 		UPDATE api_keys SET deleted_at = NOW() WHERE id = $1
 	`, keyID)
 
 	if err != nil {
-		http.Error(w, "Failed to delete key", http.StatusInternalServerError)
+		fmt.Printf("Failed to delete API key: %v\n", err)
+		InternalError(w, "Failed to delete API key")
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{"message": "Key deleted"})
+	rowsAffected, err := result.RowsAffected()
+	if err != nil || rowsAffected == 0 {
+		NotFound(w, "API key not found")
+		return
+	}
+
+	SuccessResponse(w, map[string]string{"message": "Key deleted successfully"})
 }
 
-// GetKeyStats gets usage stats for a specific or all keys
+// GetKeyStats gets usage stats for all API keys
 func (h *APIKeyHandler) GetKeyStats(w http.ResponseWriter, r *http.Request) {
-	keyID := r.URL.Query().Get("id")
-
-	// If no specific key ID, return general stats
-	if keyID == "" {
-		h.GetGeneralStats(w, r)
+	if h.db == nil {
+		InternalError(w, "Database not initialized")
 		return
 	}
 
-	var totalRequests, successRequests, failedRequests int
-	var lastUsed sql.NullTime
-
-	err := h.db.QueryRow(`
-		SELECT
-			COUNT(*) as total,
-			COUNT(CASE WHEN status_code >= 200 AND status_code < 300 THEN 1 END) as success,
-			COUNT(CASE WHEN status_code >= 400 THEN 1 END) as failed,
-			MAX(requested_at) as last_used
-		FROM api_key_usage
-		WHERE key_id = $1
-	`, keyID).Scan(&totalRequests, &successRequests, &failedRequests, &lastUsed)
-
-	if err != nil {
-		http.Error(w, "Failed to fetch stats", http.StatusInternalServerError)
-		return
-	}
-
-	stats := map[string]interface{}{
-		"total_requests":   totalRequests,
-		"success_requests": successRequests,
-		"failed_requests":  failedRequests,
-	}
-
-	if lastUsed.Valid {
-		stats["last_used"] = lastUsed.Time
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(stats)
-}
-
-// GetGeneralStats gets overall stats for all API keys
-func (h *APIKeyHandler) GetGeneralStats(w http.ResponseWriter, r *http.Request) {
 	var totalKeys, activeKeys, totalUsage int
 
-	// Get total and active keys
 	err := h.db.QueryRow(`
 		SELECT
 			COUNT(*) as total,
-			COUNT(CASE WHEN enabled = true THEN 1 END) as active
+			COUNT(CASE WHEN enabled = true AND (expire_at IS NULL OR expire_at > NOW()) THEN 1 END) as active
 		FROM api_keys
 		WHERE deleted_at IS NULL
 	`).Scan(&totalKeys, &activeKeys)
 
 	if err != nil {
-		http.Error(w, "Failed to fetch key stats", http.StatusInternalServerError)
+		fmt.Printf("Failed to fetch API key stats: %v\n", err)
+		InternalError(w, "Failed to fetch stats")
 		return
 	}
 
-	// Get total usage
-	err = h.db.QueryRow(`
-		SELECT COUNT(*) as total
-		FROM api_key_usage
-	`).Scan(&totalUsage)
-
-	if err != nil {
-		// If table doesn't exist or is empty, that's OK
-		totalUsage = 0
-	}
+	// Try to get total usage, but don't fail if table doesn't exist
+	_ = h.db.QueryRow(`SELECT COUNT(*) FROM api_key_usage`).Scan(&totalUsage)
 
 	stats := map[string]interface{}{
-		"total_keys":   totalKeys,
-		"active_keys":  activeKeys,
-		"total_usage":  totalUsage,
-		"providers":    make(map[string]interface{}),
+		"totalKeys":     totalKeys,
+		"activeKeys":    activeKeys,
+		"totalRequests": totalUsage,
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(stats)
+	SuccessResponse(w, stats)
 }
 
 // Helper functions
-
 func generateAPIKey() string {
 	b := make([]byte, 32)
 	rand.Read(b)

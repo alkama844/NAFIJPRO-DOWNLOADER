@@ -182,7 +182,7 @@ const adminFetcher = async <T>(url: string): Promise<T> => {
 
         const headers = await getAdminHeadersAsync();
         const res = await fetch(url, { headers });
-        
+
         // Handle non-OK responses
         if (!res.ok) {
             // Try to parse error response
@@ -206,7 +206,7 @@ const adminFetcher = async <T>(url: string): Promise<T> => {
                 userMessage: errorMessage,
             });
         }
-        
+
         // Parse successful response
         const text = await res.text();
         if (!text) {
@@ -214,7 +214,7 @@ const adminFetcher = async <T>(url: string): Promise<T> => {
                 userMessage: 'Server returned empty response',
             });
         }
-        
+
         let json;
         try {
             json = JSON.parse(text);
@@ -223,13 +223,16 @@ const adminFetcher = async <T>(url: string): Promise<T> => {
                 userMessage: 'Server returned invalid response format',
             });
         }
-        
-        if (!json.success) {
+
+        // NEW: Handle both old and new response formats
+        if (json.success === false) {
             throw new AdminApiError(json.error || 'Request failed', {
                 userMessage: json.error || 'Permintaan gagal',
             });
         }
-        return json.data;
+
+        // NEW: Return data field if it exists, otherwise return whole response
+        return json.data !== undefined ? json.data : json;
     } catch (error) {
         // Re-throw if already transformed
         if (error instanceof AdminApiError) {
